@@ -1,0 +1,173 @@
+<?php
+
+/**
+ * Deployment View class.
+ *
+ * @package Devsoom_AutoDeploy
+ */
+
+namespace Devsoom_AutoDeploy\Admin;
+
+use Devsoom_AutoDeploy\Core\Logger;
+
+/**
+ * Class Deployment_View
+ *
+ * Displays deployment history and logs.
+ *
+ * @since 1.0.0
+ */
+class Deployment_View
+{
+
+    /**
+     * Render deployments page.
+     *
+     * @return void
+     */
+    public function render(): void
+    {
+        // Get deployment ID if viewing specific deployment.
+        $deployment_id = isset($_GET['deployment_id']) ? (int) $_GET['deployment_id'] : 0;
+
+        if ($deployment_id > 0) {
+            // View single deployment.
+            $this->render_single_deployment($deployment_id);
+        } else {
+            // View deployment list.
+            $this->render_deployment_list();
+        }
+    }
+
+    /**
+     * Render single deployment details.
+     *
+     * @param int $deployment_id Deployment ID.
+     * @return void
+     */
+    private function render_single_deployment(int $deployment_id): void
+    {
+        $deployment = $this->get_deployment($deployment_id);
+
+        if (! $deployment) {
+            echo '<div class="notice notice-error"><p>' . esc_html__('Deployment not found.', 'devsoom-autodeploy') . '</p></div>';
+            return;
+        }
+
+        // Get deployment logs.
+        $logger = Logger::get_instance();
+        $logs = $logger->get_deployment_logs($deployment_id);
+
+        include DEVSOMM_AUTODEPLOY_PATH . 'admin/partials/deployment-single.php';
+    }
+
+    /**
+     * Render deployment list.
+     *
+     * @return void
+     */
+    private function render_deployment_list(): void
+    {
+        // Get filter parameters.
+        $status   = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+        $per_page = isset($_GET['per_page']) ? (int) $_GET['per_page'] : 20;
+        $paged    = isset($_GET['paged']) ? (int) $_GET['paged'] : 1;
+        $offset   = ($paged - 1) * $per_page;
+
+        // Get deployments.
+        $deployments = $this->get_deployments($status, $per_page, $offset);
+
+        // Get total count for pagination.
+        $total = $this->get_deployments_count($status);
+
+        include DEVSOMM_AUTODEPLOY_PATH . 'admin/partials/deployment-list.php';
+    }
+
+    /**
+     * Get deployment by ID.
+     *
+     * @param int $deployment_id Deployment ID.
+     * @return array|false Deployment data or false on failure.
+     */
+    private function get_deployment(int $deployment_id): array|false
+    {
+        global $wpdb;
+
+        $deployments_table = $wpdb->prefix . 'devsoom_deployments';
+        $repositories_table = $wpdb->prefix . 'devsoom_repositories';
+
+        $deployment = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT d.*, r.plugin_slug, r.repo_owner, r.repo_name, r.branch
+				FROM $deployments_table d
+				INNER JOIN $repositories_table r ON d.repository_id = r.id
+				WHERE d.id = %d",
+                $deployment_id
+            ),
+            ARRAY_A
+        );
+
+        return $deployment ?: false;
+    }
+
+    /**
+     * Get deployments with optional filtering.
+     *
+     * @param string $status   Status filter.
+     * @param int    $per_page Number per page.
+     * @param int    $offset   Offset.
+     * @return array Array of deployments.
+     */
+    private function get_deployments(string $status = '', int $per_page = 20, int $offset = 0): array
+    {
+        global $wpdb;
+
+        $deployments_table = $wpdb->prefix . 'devsoom_deployments';
+        $repositories_table = $wpdb->prefix . 'devsoom_repositories';
+
+        $where = '';
+        if (! empty($status)) {
+            $where = $wpdb->prepare(" WHERE d.status = %s", $status);
+        }
+
+        $deployments = $wpdb->get_results(
+            "SELECT d.*, r.plugin_slug, r.repo_owner, r.repo_name, r.branch
+			FROM $deployments_table d
+			INNER JOIN $repositories_table r ON d.repository_id = r.id
+			$where
+			ORDER BY d.created_at DESC
+			LIMIT $per_page OFFSET $offset",
+            ARRAY_A
+        );
+
+        return $deployments ?: array();
+    }
+
+    /**
+     * Get deployments count with optional filtering.
+     *
+     * @param string $status Status filter.
+     * @return int Count.
+     */
+    private function get_deployments_count(string $status = ''): int
+    {
+        global $wpdb;
+
+        $deployments_table = $wpdb->prefix . 'devsoom_deployments';
+        $repositories_table = $wpdb->prefix . 'devsoom_repositories';
+
+        $where = '';
+        if (! empty($status)) {
+            $where = $wpdb->prepare(" WHERE d.status = %s", $status);
+        }
+
+        $count = (int) $wpdb->get_var(
+            "SELECT COUNT(*)
+			FROM $deployments_table d
+			INNER JOIN $repositories_table r ON d.repository_id = r.id
+			$where"
+        );
+
+        return $count;
+    }
+}
