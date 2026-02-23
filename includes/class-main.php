@@ -52,7 +52,7 @@ class Main
     {
         $this->version     = DEVSOMM_AUTODEPLOY_VERSION;
         $this->plugin_name = 'devsoom-autodeploy';
-        $this->loader      = new Loader();
+        $this->loader      = Loader::get_instance();
 
         $this->load_dependencies();
         $this->set_locale();
