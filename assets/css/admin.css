@@ -10,6 +10,12 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   margin: 20px 0;
+  order: 1;
+}
+
+/* Recent Deployments Notice */
+.devsoom-recent-deployments-notice {
+  order: 2;
 }
 
 .devsoom-autodeploy-stat-card {
