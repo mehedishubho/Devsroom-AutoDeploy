@@ -228,8 +228,8 @@ class Auth_Manager
         error_log('Devsoom AutoDeploy DEBUG: Token length = ' . strlen($token));
         error_log('Devsoom AutoDeploy DEBUG: Token prefix = ' . substr($token, 0, 10) . '...');
 
-        $github_api = new GitHub_API();
-        $user_info  = $github_api->get_authenticated_user($token);
+        $github_api = new GitHub_API($token);
+        $user_info  = $github_api->get_authenticated_user();
 
         error_log('Devsoom AutoDeploy DEBUG: User info received = ' . ($user_info ? 'YES' : 'NO'));
         if ($user_info) {

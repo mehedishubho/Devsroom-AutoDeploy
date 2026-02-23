@@ -169,19 +169,15 @@ class Settings
      */
     private function add_pat_token(): void
     {
-        $raw_token = $_POST['pat_token'] ?? '';
-        $token     = sanitize_text_field($raw_token);
+        $token     = $_POST['pat_token'] ?? '';
         $token_name = sanitize_text_field($_POST['pat_token_name'] ?? '');
 
         // DEBUG: Log token details
-        error_log('Devsoom AutoDeploy DEBUG: Raw token length = ' . strlen($raw_token));
-        error_log('Devsoom AutoDeploy DEBUG: Raw token prefix = ' . substr($raw_token, 0, 10) . '...');
-        error_log('Devsoom AutoDeploy DEBUG: Sanitized token length = ' . strlen($token));
-        error_log('Devsoom AutoDeploy DEBUG: Sanitized token prefix = ' . substr($token, 0, 10) . '...');
-        error_log('Devsoom AutoDeploy DEBUG: Token changed by sanitization = ' . ($raw_token !== $token ? 'YES' : 'NO'));
+        error_log('Devsoom AutoDeploy DEBUG: Token length = ' . strlen($token));
+        error_log('Devsoom AutoDeploy DEBUG: Token prefix = ' . substr($token, 0, 10) . '...');
 
         if (empty($token)) {
-            error_log('Devsoom AutoDeploy DEBUG: Token is empty after sanitization');
+            error_log('Devsoom AutoDeploy DEBUG: Token is empty');
             wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-settings&error=missing_token'));
             exit;
         }
