@@ -48,6 +48,11 @@ define('DEVSOMM_AUTODEPLOY_BASENAME', plugin_basename(__FILE__));
 define('DEVSOMM_AUTODEPLOY_FILE', __FILE__);
 
 /**
+ * Plugin slug (directory name).
+ */
+define('DEVSOMM_AUTODEPLOY_PLUGIN_SLUG', 'devsoom-autodeploy');
+
+/**
  * Autoload classes.
  */
 require_once DEVSOMM_AUTODEPLOY_PATH . 'includes/class-loader.php';

@@ -35,6 +35,8 @@ if (! defined('ABSPATH')) {
             'webhook_failed' => __('Failed to create webhook on GitHub.', 'devsoom-autodeploy'),
             'invalid_id' => __('Invalid repository ID.', 'devsoom-autodeploy'),
             'not_found' => __('Repository not found.', 'devsoom-autodeploy'),
+            'invalid_plugin_slug' => __('Invalid plugin slug: Cannot use "devsoom-autodeploy" as the target plugin. Please specify a different plugin folder.', 'devsoom-autodeploy'),
+            'invalid_slug_format' => __('Invalid plugin slug format. Use only lowercase letters, numbers, and hyphens (e.g., my-plugin).', 'devsoom-autodeploy'),
         );
         $error_message = $error_messages[$_GET['error']] ?? $_GET['error'];
         echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($error_message) . '</p></div>';
@@ -49,12 +51,18 @@ if (! defined('ABSPATH')) {
         <table class="form-table">
             <tr>
                 <th scope="row">
-                    <label for="plugin_slug"><?php esc_html_e('Plugin Slug', 'devsoom-autodeploy'); ?></label>
+                    <label for="plugin_slug"><?php esc_html_e('Target Plugin Slug', 'devsoom-autodeploy'); ?></label>
                 </th>
                 <td>
-                    <input type="text" name="plugin_slug" id="plugin_slug" class="regular-text" required>
+                    <input type="text" name="plugin_slug" id="plugin_slug" class="regular-text" required
+                        placeholder="e.g., my-custom-plugin">
                     <p class="description">
-                        <?php esc_html_e('The WordPress plugin slug (e.g., my-plugin).', 'devsoom-autodeploy'); ?>
+                        <?php esc_html_e('The WordPress plugin folder where the repository files will be deployed.', 'devsoom-autodeploy'); ?><br>
+                        <?php esc_html_e('This should match the target plugin folder name in your wp-content/plugins directory.', 'devsoom-autodeploy'); ?><br>
+                        <?php esc_html_e('Example: If deploying to wp-content/plugins/my-plugin, enter "my-plugin".', 'devsoom-autodeploy'); ?><br>
+                        <strong style="color: #d63638;">
+                            <?php esc_html_e('Warning: Do NOT use "devsoom-autodeploy" as this will break the deployment system.', 'devsoom-autodeploy'); ?>
+                        </strong>
                     </p>
                 </td>
             </tr>

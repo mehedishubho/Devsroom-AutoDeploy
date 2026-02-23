@@ -97,6 +97,18 @@ class Repository_Manager
             exit;
         }
 
+        // Validate plugin_slug is not the AutoDeploy plugin itself.
+        if ($plugin_slug === DEVSOMM_AUTODEPLOY_PLUGIN_SLUG) {
+            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=invalid_plugin_slug'));
+            exit;
+        }
+
+        // Validate plugin_slug format (only lowercase letters, numbers, and hyphens).
+        if (! preg_match('/^[a-z0-9-]+$/', $plugin_slug)) {
+            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=invalid_slug_format'));
+            exit;
+        }
+
         // Validate auth token.
         $auth_manager = Auth_Manager::get_instance();
         $token_data   = $auth_manager->get_token($auth_token_id);
