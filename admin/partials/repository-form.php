@@ -173,6 +173,7 @@ if (! defined('ABSPATH')) {
                     <th><?php esc_html_e('Branch', 'devsoom-autodeploy'); ?></th>
                     <th><?php esc_html_e('Auto Deploy', 'devsoom-autodeploy'); ?></th>
                     <th><?php esc_html_e('Last Deployed', 'devsoom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Update Available', 'devsoom-autodeploy'); ?></th>
                     <th><?php esc_html_e('Status', 'devsoom-autodeploy'); ?></th>
                     <th><?php esc_html_e('Actions', 'devsoom-autodeploy'); ?></th>
                 </tr>
@@ -198,6 +199,23 @@ if (! defined('ABSPATH')) {
                             ?>
                         </td>
                         <td>
+                            <?php if ($repo['has_update']) : ?>
+                                <span class="update-available-badge">
+                                    <?php esc_html_e('Yes', 'devsoom-autodeploy'); ?>
+                                </span>
+                                <?php if ($repo['latest_commit_message']) : ?>
+                                    <br>
+                                    <small class="text-muted">
+                                        <?php echo esc_html(substr($repo['latest_commit_message'], 0, 50)); ?>...
+                                    </small>
+                                <?php endif; ?>
+                            <?php else : ?>
+                                <span class="no-update-badge">
+                                    <?php esc_html_e('No', 'devsoom-autodeploy'); ?>
+                                </span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
                             <span class="status-badge status-<?php echo esc_attr($repo['status']); ?>">
                                 <?php echo esc_html(ucfirst($repo['status'])); ?>
                             </span>
@@ -206,8 +224,8 @@ if (! defined('ABSPATH')) {
                             <form method="post" action="" style="display:inline;">
                                 <?php wp_nonce_field('devsoom_autodeploy_save_repository', 'devsoom_autodeploy_nonce'); ?>
                                 <input type="hidden" name="repository_id" value="<?php echo esc_attr($repo['id']); ?>">
-                                <button type="submit" name="devsoom_autodeploy_deploy_now" class="button button-small">
-                                    <?php esc_html_e('Deploy Now', 'devsoom-autodeploy'); ?>
+                                <button type="submit" name="devsoom_autodeploy_deploy_now" class="button button-small <?php echo $repo['has_update'] ? 'button-primary' : ''; ?>">
+                                    <?php echo $repo['has_update'] ? esc_html__('Pull Update', 'devsoom-autodeploy') : esc_html__('Deploy Now', 'devsoom-autodeploy'); ?>
                                 </button>
                             </form>
                             <form method="post" action="" style="display:inline;" onsubmit="return confirm('<?php esc_attr_e('Are you sure you want to delete this repository?', 'devsoom-autodeploy'); ?>');">

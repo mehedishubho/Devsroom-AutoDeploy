@@ -56,6 +56,14 @@ class Admin
      */
     public function add_plugin_menu(): void
     {
+        // Get updates count.
+        $repository_manager = new Repository_Manager();
+        $updates_count = $repository_manager->get_updates_count();
+        $menu_title = __('Repositories', 'devsoom-autodeploy');
+        if ($updates_count > 0) {
+            $menu_title .= ' <span class="update-plugins count-' . esc_attr($updates_count) . '"><span class="update-count">' . number_format_i18n($updates_count) . '</span></span>';
+        }
+
         // Main menu.
         add_menu_page(
             __('Devsoom AutoDeploy', 'devsoom-autodeploy'),
@@ -81,7 +89,7 @@ class Admin
         add_submenu_page(
             'devsoom-autodeploy',
             __('Repositories', 'devsoom-autodeploy'),
-            __('Repositories', 'devsoom-autodeploy'),
+            $menu_title,
             'manage_options',
             'devsoom-autodeploy-repositories',
             array($this, 'display_repositories')

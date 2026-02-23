@@ -31,6 +31,13 @@ class Dashboard
         // Get recent deployments.
         $recent_deployments = $this->get_recent_deployments(5);
 
+        // Get repositories with update status.
+        $repository_manager = new Repository_Manager();
+        $repositories = $repository_manager->get_repositories_with_update_status();
+
+        // Get updates count.
+        $updates_count = $repository_manager->get_updates_count();
+
         include DEVSOMM_AUTODEPLOY_PATH . 'admin/partials/dashboard.php';
     }
 

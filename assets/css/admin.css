@@ -77,6 +77,29 @@
   color: #721c24;
 }
 
+/* Update Badges */
+.update-available-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.no-update-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
 /* Log Levels */
 .log-level {
   display: inline-block;

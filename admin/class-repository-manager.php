@@ -32,8 +32,8 @@ class Repository_Manager
         // Handle form submissions.
         $this->handle_form_submissions();
 
-        // Get repositories.
-        $repositories = $this->get_repositories();
+        // Get repositories with update status.
+        $repositories = $this->get_repositories_with_update_status();
 
         // Get auth tokens.
         $auth_manager = Auth_Manager::get_instance();
@@ -298,5 +298,85 @@ class Repository_Manager
         );
 
         return $repository ?: false;
+    }
+
+    /**
+     * Check for updates on all repositories.
+     *
+     * @return array Array of repositories with update status.
+     */
+    public function check_for_updates(): array
+    {
+        $repositories = $this->get_repositories();
+        $auth_manager = Auth_Manager::get_instance();
+
+        foreach ($repositories as &$repo) {
+            $repo['has_update'] = false;
+            $repo['latest_commit'] = null;
+            $repo['latest_commit_message'] = '';
+            $repo['latest_commit_author'] = '';
+            $repo['latest_commit_date'] = '';
+
+            // Get auth token.
+            $token_data = $auth_manager->get_token($repo['auth_token_id']);
+
+            if (! $token_data) {
+                continue;
+            }
+
+            // Initialize GitHub API.
+            $github_api = new GitHub_API($token_data['token']);
+
+            // Get latest commit.
+            $commit = $github_api->get_latest_commit(
+                $repo['repo_owner'],
+                $repo['repo_name'],
+                $repo['branch']
+            );
+
+            if (! $commit) {
+                continue;
+            }
+
+            $commit_hash = $commit['sha'];
+
+            // Check if update is available.
+            $repo['has_update'] = $commit_hash !== $repo['last_commit_hash'];
+            $repo['latest_commit'] = $commit_hash;
+            $repo['latest_commit_message'] = $commit['commit']['message'] ?? '';
+            $repo['latest_commit_author'] = $commit['commit']['author']['name'] ?? '';
+            $repo['latest_commit_date'] = $commit['commit']['author']['date'] ?? '';
+        }
+
+        return $repositories;
+    }
+
+    /**
+     * Get repositories with update status.
+     *
+     * @return array Array of repositories with update status.
+     */
+    public function get_repositories_with_update_status(): array
+    {
+        return $this->check_for_updates();
+    }
+
+    /**
+     * Get count of repositories with available updates.
+     *
+     * @return int Number of repositories with updates.
+     */
+    public function get_updates_count(): int
+    {
+        $repositories = $this->check_for_updates();
+        $count = 0;
+
+        foreach ($repositories as $repo) {
+            if ($repo['has_update']) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 }
