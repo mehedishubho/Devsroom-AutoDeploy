@@ -190,6 +190,27 @@
             }
         });
 
+        // Dismissible Recent Deployments notice
+        $('.devsoom-recent-deployments-notice').on('click', '.notice-dismiss', function (e) {
+            e.preventDefault();
+
+            $.ajax({
+                url: devsoom_autodeploy.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'devsoom_autodeploy_dismiss_recent_deployments',
+                    nonce: devsoom_autodeploy.nonce
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('.devsoom-recent-deployments-notice').fadeOut(300, function () {
+                            $(this).remove();
+                        });
+                    }
+                }
+            });
+        });
+
         // Initialize tooltips
         if ($.fn.tooltip) {
             $('[data-tooltip]').tooltip({

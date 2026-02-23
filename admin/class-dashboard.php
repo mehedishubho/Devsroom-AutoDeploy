@@ -19,12 +19,58 @@ class Dashboard
 {
 
     /**
+     * Constructor.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        // Register AJAX handler for dismissing recent deployments.
+        add_action('wp_ajax_devsoom_autodeploy_dismiss_recent_deployments', array($this, 'ajax_dismiss_recent_deployments'));
+    }
+
+    /**
+     * AJAX handler for dismissing recent deployments notice.
+     *
+     * @return void
+     */
+    public function ajax_dismiss_recent_deployments(): void
+    {
+        check_ajax_referer('devsoom_autodeploy_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => __('Permission denied.', 'devsoom-autodeploy')));
+        }
+
+        update_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments', true);
+
+        wp_send_json_success();
+    }
+
+    /**
      * Render dashboard page.
      *
      * @return void
      */
     public function render(): void
     {
+        // Handle dismissible notice.
+        if (isset($_GET['devsoom_dismiss_recent_deployments'])) {
+            update_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments', true);
+            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-dashboard'));
+            exit;
+        }
+
+        // Handle restore recent deployments.
+        if (isset($_GET['devsoom_restore_recent_deployments'])) {
+            delete_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments');
+            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-dashboard'));
+            exit;
+        }
+
+        // Check if recent deployments should be hidden.
+        $hide_recent_deployments = get_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments', true);
+
         // Get statistics.
         $stats = $this->get_statistics();
 

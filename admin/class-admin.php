@@ -123,7 +123,12 @@ class Admin
      */
     public function display_dashboard(): void
     {
-        $dashboard = new Dashboard();
+        static $dashboard = null;
+
+        if ($dashboard === null) {
+            $dashboard = new Dashboard();
+        }
+
         $dashboard->render();
     }
 
