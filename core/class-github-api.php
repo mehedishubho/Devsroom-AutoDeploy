@@ -245,13 +245,6 @@ class GitHub_API
     {
         $url = $this->api_url . $endpoint;
 
-        error_log('Devsoom AutoDeploy DEBUG: GitHub API Request');
-        error_log('Devsoom AutoDeploy DEBUG: URL = ' . $url);
-        error_log('Devsoom AutoDeploy DEBUG: Method = ' . $method);
-        error_log('Devsoom AutoDeploy DEBUG: Token present = ' . ($this->token ? 'YES' : 'NO'));
-        error_log('Devsoom AutoDeploy DEBUG: Token length = ' . strlen($this->token));
-        error_log('Devsoom AutoDeploy DEBUG: Token prefix = ' . substr($this->token, 0, 10) . '...');
-
         $headers = array(
             'Accept'        => 'application/vnd.github.v3+json',
             'User-Agent'    => 'Devsoom-AutoDeploy/' . DEVSOMM_AUTODEPLOY_VERSION,
@@ -272,33 +265,25 @@ class GitHub_API
             $headers['Content-Type'] = 'application/json';
         }
 
-        error_log('Devsoom AutoDeploy DEBUG: Request args = ' . json_encode($args));
-
         $response = wp_remote_request($url, $args);
 
         if (is_wp_error($response)) {
-            error_log('Devsoom AutoDeploy DEBUG: WP Error = ' . $response->get_error_message());
+            error_log('Devsoom AutoDeploy: GitHub API request failed - ' . $response->get_error_message());
             return false;
         }
 
         $status_code = wp_remote_retrieve_response_code($response);
         $body        = wp_remote_retrieve_body($response);
 
-        error_log('Devsoom AutoDeploy DEBUG: Response status code = ' . $status_code);
-        error_log('Devsoom AutoDeploy DEBUG: Response body length = ' . strlen($body));
-        error_log('Devsoom AutoDeploy DEBUG: Response body (first 500 chars) = ' . substr($body, 0, 500));
-
         // Handle non-2xx responses.
         if ($status_code < 200 || $status_code >= 300) {
             $error_data = json_decode($body, true);
             $message    = $error_data['message'] ?? "GitHub API Error: $status_code";
-            error_log("Devsoom AutoDeploy: $message");
-            error_log("Devsoom AutoDeploy DEBUG: Full error response = " . $body);
+            error_log("Devsoom AutoDeploy: GitHub API error - $message");
             return false;
         }
 
         $decoded = json_decode($body, true);
-        error_log('Devsoom AutoDeploy DEBUG: Successfully decoded JSON');
         return $decoded;
     }
 
@@ -316,7 +301,13 @@ class GitHub_API
             return false;
         }
 
-        list($algorithm, $hash) = explode('=', $signature, 2);
+        $parts = explode('=', $signature, 2);
+
+        if (count($parts) !== 2) {
+            return false;
+        }
+
+        list($algorithm, $hash) = $parts;
 
         if ('sha256' !== $algorithm) {
             return false;

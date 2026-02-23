@@ -56,6 +56,9 @@ class Dashboard
     {
         // Handle dismissible notice.
         if (isset($_GET['devsoom_dismiss_recent_deployments'])) {
+            if (! current_user_can('manage_options')) {
+                wp_die(__('Permission denied', 'devsoom-autodeploy'));
+            }
             update_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments', true);
             wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-dashboard'));
             exit;
@@ -63,6 +66,9 @@ class Dashboard
 
         // Handle restore recent deployments.
         if (isset($_GET['devsoom_restore_recent_deployments'])) {
+            if (! current_user_can('manage_options')) {
+                wp_die(__('Permission denied', 'devsoom-autodeploy'));
+            }
             delete_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments');
             wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-dashboard'));
             exit;

@@ -171,7 +171,10 @@ class Deployment_Manager
 
         // Safety check: Prevent overwriting the AutoDeploy plugin itself.
         $autodeploy_plugin_path = WP_PLUGIN_DIR . '/' . DEVSOMM_AUTODEPLOY_PLUGIN_SLUG;
-        if ($plugin_path === $autodeploy_plugin_path) {
+        $plugin_path_real = realpath($plugin_path);
+        $autodeploy_path_real = realpath($autodeploy_plugin_path);
+
+        if ($plugin_path_real === $autodeploy_path_real) {
             $this->logger->error($deployment_id ?? 0, 'Security violation: Attempt to overwrite AutoDeploy plugin', array(
                 'plugin_slug' => $repository['plugin_slug'],
                 'plugin_path' => $plugin_path,

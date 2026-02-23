@@ -265,7 +265,8 @@ class Repository_Manager
         if ($result['success']) {
             wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&deployed=true'));
         } else {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=' . urlencode($result['message'])));
+            $safe_message = sanitize_text_field($result['message']);
+            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=' . urlencode($safe_message)));
         }
         exit;
     }
