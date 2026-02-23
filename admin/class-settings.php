@@ -169,10 +169,19 @@ class Settings
      */
     private function add_pat_token(): void
     {
-        $token     = sanitize_text_field($_POST['pat_token'] ?? '');
+        $raw_token = $_POST['pat_token'] ?? '';
+        $token     = sanitize_text_field($raw_token);
         $token_name = sanitize_text_field($_POST['pat_token_name'] ?? '');
 
+        // DEBUG: Log token details
+        error_log('Devsoom AutoDeploy DEBUG: Raw token length = ' . strlen($raw_token));
+        error_log('Devsoom AutoDeploy DEBUG: Raw token prefix = ' . substr($raw_token, 0, 10) . '...');
+        error_log('Devsoom AutoDeploy DEBUG: Sanitized token length = ' . strlen($token));
+        error_log('Devsoom AutoDeploy DEBUG: Sanitized token prefix = ' . substr($token, 0, 10) . '...');
+        error_log('Devsoom AutoDeploy DEBUG: Token changed by sanitization = ' . ($raw_token !== $token ? 'YES' : 'NO'));
+
         if (empty($token)) {
+            error_log('Devsoom AutoDeploy DEBUG: Token is empty after sanitization');
             wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-settings&error=missing_token'));
             exit;
         }
@@ -180,7 +189,12 @@ class Settings
         $auth_manager = Auth_Manager::get_instance();
 
         // Validate token.
-        if (! $auth_manager->validate_token($token)) {
+        error_log('Devsoom AutoDeploy DEBUG: Calling validate_token()...');
+        $validation_result = $auth_manager->validate_token($token);
+        error_log('Devsoom AutoDeploy DEBUG: validate_token() returned = ' . ($validation_result ? 'true' : 'false'));
+
+        if (! $validation_result) {
+            error_log('Devsoom AutoDeploy DEBUG: Token validation failed');
             wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-settings&error=invalid_token'));
             exit;
         }
@@ -188,6 +202,7 @@ class Settings
         // Store token.
         $auth_manager->store_pat_token(get_current_user_id(), $token, $token_name);
 
+        error_log('Devsoom AutoDeploy DEBUG: Token stored successfully');
         wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-settings&token_added=true'));
         exit;
     }

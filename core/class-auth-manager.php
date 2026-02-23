@@ -224,8 +224,17 @@ class Auth_Manager
      */
     public function validate_token(string $token): bool
     {
+        error_log('Devsoom AutoDeploy DEBUG: validate_token() called');
+        error_log('Devsoom AutoDeploy DEBUG: Token length = ' . strlen($token));
+        error_log('Devsoom AutoDeploy DEBUG: Token prefix = ' . substr($token, 0, 10) . '...');
+
         $github_api = new GitHub_API();
         $user_info  = $github_api->get_authenticated_user($token);
+
+        error_log('Devsoom AutoDeploy DEBUG: User info received = ' . ($user_info ? 'YES' : 'NO'));
+        if ($user_info) {
+            error_log('Devsoom AutoDeploy DEBUG: User info data = ' . json_encode($user_info));
+        }
 
         return ! empty($user_info);
     }
