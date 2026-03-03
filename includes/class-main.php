@@ -11,6 +11,7 @@ namespace Devsroom_AutoDeploy;
 use Devsroom_AutoDeploy\Admin\Admin;
 use Devsroom_AutoDeploy\Core\Deployment_Manager;
 use Devsroom_AutoDeploy\Core\Polling_Scheduler;
+use Devsroom_AutoDeploy\Database\Schema;
 use Devsroom_AutoDeploy\Public\Webhook_Handler;
 
 /**
@@ -158,7 +159,23 @@ class Main
      */
     private function define_core_hooks(): void
     {
-        // Core hooks are registered in load_dependencies via activation/deactivation hooks.
+        $scheduler = Polling_Scheduler::get_instance();
+        add_action('init', array($scheduler, 'schedule'));
+        add_action('plugins_loaded', array($this, 'maybe_upgrade_database'));
+    }
+
+    /**
+     * Run dbDelta when plugin version changes so existing installs get schema updates.
+     *
+     * @return void
+     */
+    public function maybe_upgrade_database(): void
+    {
+        $stored_version = get_option('devsroom_autodeploy_db_version', '');
+
+        if ($stored_version !== DEVSROOM_AUTODEPLOY_VERSION) {
+            Schema::create_tables();
+        }
     }
 
     /**

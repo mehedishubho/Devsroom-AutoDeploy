@@ -18,7 +18,7 @@ if (! defined('ABSPATH')) {
 
     <p>
         <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-deployments')); ?>" class="button">
-            <?php esc_html_e('← Back to Deployments', 'devsroom-autodeploy'); ?>
+            <?php esc_html_e('<- Back to Deployments', 'devsroom-autodeploy'); ?>
         </a>
     </p>
 

@@ -449,6 +449,9 @@ class Auth_Manager
     {
         $stored_state = get_user_meta($user_id, 'devsroom_autodeploy_oauth_state', true);
         delete_user_meta($user_id, 'devsroom_autodeploy_oauth_state');
+        if (! is_string($stored_state) || '' === $stored_state) {
+            return false;
+        }
         return hash_equals($stored_state, $state);
     }
 

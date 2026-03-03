@@ -1,4 +1,4 @@
-hp
+<?php
 
 /**
  * Repository Manager class.
@@ -90,6 +90,7 @@ class Repository_Manager
         $auto_deploy     = isset($_POST['auto_deploy']) ? 1 : 0;
         $enable_backup  = isset($_POST['enable_backup']) ? 1 : 0;
         $scan_level     = sanitize_text_field($_POST['scan_level'] ?? 'basic');
+        $repository_id = (int) ($_POST['repository_id'] ?? 0);
 
         // Validate required fields.
         if (empty($plugin_slug) || empty($repo_owner) || empty($repo_name)) {
@@ -107,6 +108,11 @@ class Repository_Manager
         if (! preg_match('/^[a-z0-9-]+$/', $plugin_slug)) {
             wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=invalid_slug_format'));
             exit;
+        }
+
+        // Validate scan level against enum values.
+        if (! in_array($scan_level, array('none', 'basic', 'advanced'), true)) {
+            $scan_level = 'basic';
         }
 
         // Validate auth token.
@@ -127,8 +133,19 @@ class Repository_Manager
             exit;
         }
 
-        // Generate webhook secret.
+        // For updates, keep existing webhook secret to avoid breaking existing integrations.
         $webhook_secret = wp_generate_password(32, false, false);
+        if ($repository_id > 0) {
+            $existing_repository = $this->get_repository($repository_id);
+            if (! $existing_repository) {
+                wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=not_found'));
+                exit;
+            }
+
+            if (! empty($existing_repository['webhook_secret'])) {
+                $webhook_secret = $existing_repository['webhook_secret'];
+            }
+        }
 
         // Create webhook.
         $webhook_url = rest_url('devsroom-autodeploy/v1/webhook/' . $webhook_secret);
@@ -143,11 +160,9 @@ class Repository_Manager
         global $wpdb;
         $table_name = $wpdb->prefix . 'devsroom_repositories';
 
-        $repository_id = (int) ($_POST['repository_id'] ?? 0);
-
         if ($repository_id > 0) {
             // Update existing repository.
-            $wpdb->update(
+            $result = $wpdb->update(
                 $table_name,
                 array(
                     'plugin_slug'   => $plugin_slug,
@@ -156,16 +171,17 @@ class Repository_Manager
                     'branch'        => $branch,
                     'auth_token_id' => $auth_token_id,
                     'auto_deploy'   => $auto_deploy,
+                    'webhook_secret' => $webhook_secret,
                     'enable_backup' => $enable_backup,
                     'scan_level'    => $scan_level,
                 ),
                 array('id' => $repository_id),
-                array('%s', '%s', '%s', '%s', '%d', '%d', '%d', '%s'),
+                array('%s', '%s', '%s', '%s', '%d', '%d', '%s', '%d', '%s'),
                 array('%d')
             );
         } else {
             // Insert new repository.
-            $wpdb->insert(
+            $result = $wpdb->insert(
                 $table_name,
                 array(
                     'plugin_slug'   => $plugin_slug,
@@ -182,6 +198,11 @@ class Repository_Manager
                 ),
                 array('%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%d', '%s', '%s')
             );
+        }
+
+        if (false === $result) {
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=db_error'));
+            exit;
         }
 
         wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&saved=true'));

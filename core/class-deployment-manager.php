@@ -432,24 +432,28 @@ class Deployment_Manager
         $data = array(
             'status' => $status,
         );
+        $format = array('%s');
 
         if ('success' === $status || 'failed' === $status) {
             $data['completed_at'] = current_time('mysql');
+            $format[] = '%s';
         }
 
         if ($error_message) {
             $data['error_message'] = $error_message;
+            $format[] = '%s';
         }
 
-        if ($duration) {
+        if (null !== $duration) {
             $data['duration'] = $duration;
+            $format[] = '%d';
         }
 
         $result = $wpdb->update(
             $table_name,
             $data,
             array('id' => $deployment_id),
-            array('%s', '%s', '%s', '%d'),
+            $format,
             array('%d')
         );
 

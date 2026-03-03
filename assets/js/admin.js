@@ -224,4 +224,6 @@
                 tooltipClass: 'devsroom-autodeploy-tooltip'
             });
         }
-    })(jQuery);
+        });
+})(jQuery);
+

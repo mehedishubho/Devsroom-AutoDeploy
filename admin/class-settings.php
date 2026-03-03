@@ -1,4 +1,4 @@
-hp
+<?php
 
 /**
  * Settings class.
@@ -9,6 +9,7 @@ hp
 namespace Devsroom_AutoDeploy\Admin;
 
 use Devsroom_AutoDeploy\Core\Auth_Manager;
+use Devsroom_AutoDeploy\Core\Polling_Scheduler;
 
 /**
  * Class Settings
@@ -139,6 +140,9 @@ class Settings
         // Deployment settings.
         $polling_interval = sanitize_text_field($_POST['polling_interval'] ?? 'hourly');
         update_option('devsroom_autodeploy_polling_interval', $polling_interval);
+        $scheduler = Polling_Scheduler::get_instance();
+        $scheduler->clear_schedule();
+        $scheduler->schedule();
 
         // Backup settings.
         $backup_retention_days = (int) ($_POST['backup_retention_days'] ?? 30);
@@ -232,5 +236,16 @@ class Settings
             'notification_email'      => get_option('devsroom_autodeploy_notification_email', ''),
             'scan_level_default'     => get_option('devsroom_autodeploy_scan_level_default', 'basic'),
         );
+    }
+
+    /**
+     * Get GitHub OAuth URL for current user.
+     *
+     * @return string
+     */
+    public function get_oauth_url(): string
+    {
+        $auth_manager = Auth_Manager::get_instance();
+        return $auth_manager->get_oauth_authorization_url(get_current_user_id());
     }
 }

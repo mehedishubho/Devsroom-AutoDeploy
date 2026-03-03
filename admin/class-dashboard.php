@@ -60,7 +60,7 @@ class Dashboard
                 wp_die(__('Permission denied', 'devsroom-autodeploy'));
             }
             update_user_meta(get_current_user_id(), 'devsroom_hide_recent_deployments', true);
-            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-dashboard'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy'));
             exit;
         }
 
@@ -70,7 +70,7 @@ class Dashboard
                 wp_die(__('Permission denied', 'devsroom-autodeploy'));
             }
             delete_user_meta(get_current_user_id(), 'devsroom_hide_recent_deployments');
-            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-dashboard'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy'));
             exit;
         }
 

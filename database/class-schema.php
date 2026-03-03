@@ -85,7 +85,7 @@ class Schema
 
         $table_name = $wpdb->prefix . 'devsroom_repositories';
 
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			plugin_slug varchar(255) NOT NULL,
 			repo_owner varchar(255) NOT NULL,
@@ -104,6 +104,7 @@ class Schema
 			updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
 			UNIQUE KEY plugin_slug (plugin_slug),
+			UNIQUE KEY webhook_secret (webhook_secret),
 			KEY auth_token_id (auth_token_id),
 			KEY status (status),
 			KEY last_deployed_at (last_deployed_at)
@@ -123,7 +124,7 @@ class Schema
 
         $table_name = $wpdb->prefix . 'devsroom_auth_tokens';
 
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			user_id bigint(20) unsigned NOT NULL,
 			auth_method enum('pat', 'oauth') NOT NULL,
@@ -155,7 +156,7 @@ class Schema
 
         $table_name = $wpdb->prefix . 'devsroom_deployments';
 
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			repository_id bigint(20) unsigned NOT NULL,
 			commit_hash varchar(100) NOT NULL,
@@ -192,7 +193,7 @@ class Schema
 
         $table_name = $wpdb->prefix . 'devsroom_logs';
 
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			deployment_id bigint(20) unsigned DEFAULT NULL,
 			level enum('info', 'warning', 'error', 'debug') DEFAULT 'info',
@@ -219,7 +220,7 @@ class Schema
 
         $table_name = $wpdb->prefix . 'devsroom_backups';
 
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        $sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			repository_id bigint(20) unsigned NOT NULL,
 			deployment_id bigint(20) unsigned DEFAULT NULL,

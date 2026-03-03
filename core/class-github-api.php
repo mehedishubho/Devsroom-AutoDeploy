@@ -261,9 +261,10 @@ class GitHub_API
         );
 
         if (! empty($data)) {
-            $args['body'] = wp_json_encode($data);
             $headers['Content-Type'] = 'application/json';
+            $args['body'] = wp_json_encode($data);
         }
+        $args['headers'] = $headers;
 
         $response = wp_remote_request($url, $args);
 
@@ -283,8 +284,12 @@ class GitHub_API
             return false;
         }
 
+        if ('' === trim($body)) {
+            return array();
+        }
+
         $decoded = json_decode($body, true);
-        return $decoded;
+        return is_array($decoded) ? $decoded : array();
     }
 
     /**

@@ -1,4 +1,4 @@
-hp
+<?php
 
 /**
  * Deployment View class.
@@ -70,8 +70,15 @@ class Deployment_View
     {
         // Get filter parameters.
         $status   = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
+        $allowed_statuses = array('success', 'failed', 'pending', 'scanning', 'backing_up');
+        if (! empty($status) && ! in_array($status, $allowed_statuses, true)) {
+            $status = '';
+        }
+
         $per_page = isset($_GET['per_page']) ? (int) $_GET['per_page'] : 20;
+        $per_page = max(1, min(100, $per_page));
         $paged    = isset($_GET['paged']) ? (int) $_GET['paged'] : 1;
+        $paged    = max(1, $paged);
         $offset   = ($paged - 1) * $per_page;
 
         // Get deployments.
@@ -125,18 +132,26 @@ class Deployment_View
         $deployments_table = $wpdb->prefix . 'devsroom_deployments';
         $repositories_table = $wpdb->prefix . 'devsroom_repositories';
 
-        $where = '';
+        $where = ' WHERE 1=1';
+        $params = array();
         if (! empty($status)) {
-            $where = $wpdb->prepare(" WHERE d.status = %s", $status);
+            $where .= ' AND d.status = %s';
+            $params[] = $status;
         }
 
-        $deployments = $wpdb->get_results(
-            "SELECT d.*, r.plugin_slug, r.repo_owner, r.repo_name, r.branch
+        $params[] = $per_page;
+        $params[] = $offset;
+        $query = "SELECT d.*, r.plugin_slug, r.repo_owner, r.repo_name, r.branch
 			FROM $deployments_table d
 			INNER JOIN $repositories_table r ON d.repository_id = r.id
 			$where
 			ORDER BY d.created_at DESC
-			LIMIT $per_page OFFSET $offset",
+			LIMIT %d OFFSET %d";
+
+        $query = $wpdb->prepare($query, ...$params);
+
+        $deployments = $wpdb->get_results(
+            $query,
             ARRAY_A
         );
 
@@ -156,16 +171,24 @@ class Deployment_View
         $deployments_table = $wpdb->prefix . 'devsroom_deployments';
         $repositories_table = $wpdb->prefix . 'devsroom_repositories';
 
-        $where = '';
+        $where = ' WHERE 1=1';
+        $params = array();
         if (! empty($status)) {
-            $where = $wpdb->prepare(" WHERE d.status = %s", $status);
+            $where .= ' AND d.status = %s';
+            $params[] = $status;
+        }
+
+        $query = "SELECT COUNT(*)
+			FROM $deployments_table d
+			INNER JOIN $repositories_table r ON d.repository_id = r.id
+			$where";
+
+        if (! empty($params)) {
+            $query = $wpdb->prepare($query, ...$params);
         }
 
         $count = (int) $wpdb->get_var(
-            "SELECT COUNT(*)
-			FROM $deployments_table d
-			INNER JOIN $repositories_table r ON d.repository_id = r.id
-			$where"
+            $query
         );
 
         return $count;

@@ -130,9 +130,9 @@ class Backup_Manager
         }
 
         // Add files to archive.
-        $files = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($plugin_path, RecursiveDirectoryIterator::SKIP_DOTS),
-            RecursiveIteratorIterator::SELF_FIRST
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($plugin_path, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
         );
 
         foreach ($files as $file) {
@@ -332,7 +332,7 @@ class Backup_Manager
     {
         $size = 0;
 
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory)) as $file) {
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($directory)) as $file) {
             if ($file->isFile()) {
                 $size += $file->getSize();
             }
@@ -350,7 +350,7 @@ class Backup_Manager
     {
         $size = 0;
 
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->backup_dir, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->backup_dir, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
             if ($file->isFile()) {
                 $size += $file->getSize();
             }
@@ -368,7 +368,7 @@ class Backup_Manager
     {
         $count = 0;
 
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->backup_dir, RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->backup_dir, \RecursiveDirectoryIterator::SKIP_DOTS)) as $file) {
             if ($file->isFile() && 'zip' === strtolower($file->getExtension())) {
                 $count++;
             }

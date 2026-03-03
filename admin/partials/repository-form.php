@@ -35,6 +35,7 @@ if (! defined('ABSPATH')) {
             'webhook_failed' => __('Failed to create webhook on GitHub.', 'devsroom-autodeploy'),
             'invalid_id' => __('Invalid repository ID.', 'devsroom-autodeploy'),
             'not_found' => __('Repository not found.', 'devsroom-autodeploy'),
+            'db_error' => __('Database error while saving repository. Please try again.', 'devsroom-autodeploy'),
             'invalid_plugin_slug' => __('Invalid plugin slug: Cannot use "devsroom-autodeploy" as target plugin. Please specify a different plugin folder.', 'devsroom-autodeploy'),
             'invalid_slug_format' => __('Invalid plugin slug format. Use only lowercase letters, numbers, and hyphens (e.g., my-plugin).', 'devsroom-autodeploy'),
         );
