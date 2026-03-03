@@ -6,7 +6,7 @@
  * @package Devsoom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Core;
+namespace Devsroom_AutoDeploy\Core;
 
 /**
  * Class Security_Scanner

@@ -3,12 +3,12 @@
 /**
  * Plugin activation handler.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy;
+namespace Devsroom_AutoDeploy;
 
-use Devsoom_AutoDeploy\Database\Schema;
+use Devsroom_AutoDeploy\Database\Schema;
 
 /**
  * Class Activator
@@ -34,7 +34,7 @@ class Activator
         self::set_default_options();
 
         // Set activation timestamp.
-        update_option('devsoom_autodeploy_activated_at', current_time('mysql'));
+        update_option('devsroom_autodeploy_activated_at', current_time('mysql'));
 
         // Flush rewrite rules.
         flush_rewrite_rules();
@@ -57,8 +57,8 @@ class Activator
         );
 
         foreach ($defaults as $key => $value) {
-            if (false === get_option('devsoom_autodeploy_' . $key)) {
-                add_option('devsoom_autodeploy_' . $key, $value);
+            if (false === get_option('devsroom_autodeploy_' . $key)) {
+                add_option('devsroom_autodeploy_' . $key, $value);
             }
         }
     }

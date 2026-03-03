@@ -6,7 +6,7 @@
  * @package Devsoom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Core;
+namespace Devsroom_AutoDeploy\Core;
 
 /**
  * Class GitHub_API
@@ -247,7 +247,7 @@ class GitHub_API
 
         $headers = array(
             'Accept'        => 'application/vnd.github.v3+json',
-            'User-Agent'    => 'Devsoom-AutoDeploy/' . DEVSOMM_AUTODEPLOY_VERSION,
+            'User-Agent'    => 'Devsroom-AutoDeploy/' . DEVSROOM_AUTODEPLOY_VERSION,
         );
 
         if ($this->token) {

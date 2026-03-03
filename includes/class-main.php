@@ -3,15 +3,15 @@
 /**
  * Main plugin class.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy;
+namespace Devsroom_AutoDeploy;
 
-use Devsoom_AutoDeploy\Admin\Admin;
-use Devsoom_AutoDeploy\Core\Deployment_Manager;
-use Devsoom_AutoDeploy\Core\Polling_Scheduler;
-use Devsoom_AutoDeploy\Public\Webhook_Handler;
+use Devsroom_AutoDeploy\Admin\Admin;
+use Devsroom_AutoDeploy\Core\Deployment_Manager;
+use Devsroom_AutoDeploy\Core\Polling_Scheduler;
+use Devsroom_AutoDeploy\Public\Webhook_Handler;
 
 /**
  * Class Main
@@ -50,8 +50,8 @@ class Main
      */
     public function __construct()
     {
-        $this->version     = DEVSOMM_AUTODEPLOY_VERSION;
-        $this->plugin_name = 'devsoom-autodeploy';
+        $this->version     = DEVSROOM_AUTODEPLOY_VERSION;
+        $this->plugin_name = 'devsroom-autodeploy';
         $this->loader      = Loader::get_instance();
 
         $this->load_dependencies();
@@ -69,35 +69,35 @@ class Main
     private function load_dependencies(): void
     {
         // Core classes.
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'core/class-auth-manager.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'core/class-github-api.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'core/class-deployment-manager.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'core/class-backup-manager.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'core/class-security-scanner.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'core/class-logger.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'core/class-notification.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'core/class-polling-scheduler.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'core/class-auth-manager.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'core/class-github-api.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'core/class-deployment-manager.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'core/class-backup-manager.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'core/class-security-scanner.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'core/class-logger.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'core/class-notification.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'core/class-polling-scheduler.php';
 
         // Admin classes.
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'admin/class-admin.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'admin/class-dashboard.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'admin/class-repository-manager.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'admin/class-deployment-view.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'admin/class-settings.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'admin/class-admin.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'admin/class-dashboard.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'admin/class-repository-manager.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'admin/class-deployment-view.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'admin/class-settings.php';
 
         // Public classes.
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'public/class-webhook-handler.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'public/class-webhook-handler.php';
 
         // Database classes.
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'database/class-schema.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'database/class-schema.php';
 
         // Activation/Deactivation.
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'includes/class-activator.php';
-        require_once DEVSOMM_AUTODEPLOY_PATH . 'includes/class-deactivator.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'includes/class-activator.php';
+        require_once DEVSROOM_AUTODEPLOY_PATH . 'includes/class-deactivator.php';
 
         // Register activation and deactivation hooks.
-        register_activation_hook(DEVSOMM_AUTODEPLOY_FILE, array('Devsoom_AutoDeploy\Activator', 'activate'));
-        register_deactivation_hook(DEVSOMM_AUTODEPLOY_FILE, array('Devsoom_AutoDeploy\Deactivator', 'deactivate'));
+        register_activation_hook(DEVSROOM_AUTODEPLOY_FILE, array('Devsroom_AutoDeploy\Activator', 'activate'));
+        register_deactivation_hook(DEVSROOM_AUTODEPLOY_FILE, array('Devsroom_AutoDeploy\Deactivator', 'deactivate'));
     }
 
     /**
@@ -118,9 +118,9 @@ class Main
     public function load_plugin_textdomain(): void
     {
         load_plugin_textdomain(
-            'devsoom-autodeploy',
+            'devsroom-autodeploy',
             false,
-            dirname(DEVSOMM_AUTODEPLOY_BASENAME) . '/languages/'
+            dirname(DEVSROOM_AUTODEPLOY_BASENAME) . '/languages/'
         );
     }
 

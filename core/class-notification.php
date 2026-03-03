@@ -3,10 +3,10 @@
 /**
  * Notification class.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Core;
+namespace Devsroom_AutoDeploy\Core;
 
 /**
  * Class Notification
@@ -52,7 +52,7 @@ class Notification
 
         $subject = sprintf(
             /* translators: %s: Plugin name */
-            __('Devsoom AutoDeploy: %s deployed successfully', 'devsoom-autodeploy'),
+            __('Devsroom AutoDeploy: %s deployed successfully', 'devsroom-autodeploy'),
             $deployment['plugin_name']
         );
 
@@ -75,7 +75,7 @@ class Notification
 
         $subject = sprintf(
             /* translators: %s: Plugin name */
-            __('Devsoom AutoDeploy: Deployment failed for %s', 'devsoom-autodeploy'),
+            __('Devsroom AutoDeploy: Deployment failed for %s', 'devsroom-autodeploy'),
             $deployment['plugin_name']
         );
 
@@ -98,7 +98,7 @@ class Notification
 
         $subject = sprintf(
             /* translators: %s: Plugin name */
-            __('Devsoom AutoDeploy: Security scan alert for %s', 'devsoom-autodeploy'),
+            __('Devsroom AutoDeploy: Security scan alert for %s', 'devsroom-autodeploy'),
             $scan_result['plugin_name']
         );
 
@@ -139,31 +139,31 @@ class Notification
     {
         $message = sprintf(
             /* translators: %s: Plugin name */
-            __('The plugin %s has been successfully deployed.', 'devsoom-autodeploy'),
+            __('The plugin %s has been successfully deployed.', 'devsroom-autodeploy'),
             $deployment['plugin_name']
         ) . "\n\n";
 
-        $message .= __('Deployment Details:', 'devsoom-autodeploy') . "\n";
+        $message .= __('Deployment Details:', 'devsroom-autodeploy') . "\n";
         $message .= sprintf(
             /* translators: %s: Repository */
-            __('Repository: %s', 'devsoom-autodeploy'),
+            __('Repository: %s', 'devsroom-autodeploy'),
             $deployment['repo_owner'] . '/' . $deployment['repo_name']
         ) . "\n";
         $message .= sprintf(
             /* translators: %s: Branch */
-            __('Branch: %s', 'devsoom-autodeploy'),
+            __('Branch: %s', 'devsroom-autodeploy'),
             $deployment['branch']
         ) . "\n";
         $message .= sprintf(
             /* translators: %s: Commit hash */
-            __('Commit: %s', 'devsoom-autodeploy'),
+            __('Commit: %s', 'devsroom-autodeploy'),
             $deployment['commit_hash']
         ) . "\n";
 
         if (! empty($deployment['commit_message'])) {
             $message .= sprintf(
                 /* translators: %s: Commit message */
-                __('Message: %s', 'devsoom-autodeploy'),
+                __('Message: %s', 'devsroom-autodeploy'),
                 $deployment['commit_message']
             ) . "\n";
         }
@@ -171,7 +171,7 @@ class Notification
         if (! empty($deployment['commit_author'])) {
             $message .= sprintf(
                 /* translators: %s: Commit author */
-                __('Author: %s', 'devsoom-autodeploy'),
+                __('Author: %s', 'devsroom-autodeploy'),
                 $deployment['commit_author']
             ) . "\n";
         }
@@ -179,15 +179,15 @@ class Notification
         if (isset($deployment['duration'])) {
             $message .= sprintf(
                 /* translators: %s: Duration */
-                __('Duration: %s seconds', 'devsoom-autodeploy'),
+                __('Duration: %s seconds', 'devsroom-autodeploy'),
                 $deployment['duration']
             ) . "\n";
         }
 
         $message .= "\n" . sprintf(
             /* translators: %s: URL */
-            __('View deployment logs: %s', 'devsoom-autodeploy'),
-            admin_url('admin.php?page=devsoom-autodeploy-deployments')
+            __('View deployment logs: %s', 'devsroom-autodeploy'),
+            admin_url('admin.php?page=devsroom-autodeploy-deployments')
         );
 
         return $message;
@@ -203,31 +203,31 @@ class Notification
     {
         $message = sprintf(
             /* translators: %s: Plugin name */
-            __('The deployment of %s has failed.', 'devsoom-autodeploy'),
+            __('The deployment of %s has failed.', 'devsroom-autodeploy'),
             $deployment['plugin_name']
         ) . "\n\n";
 
-        $message .= __('Deployment Details:', 'devsoom-autodeploy') . "\n";
+        $message .= __('Deployment Details:', 'devsroom-autodeploy') . "\n";
         $message .= sprintf(
             /* translators: %s: Repository */
-            __('Repository: %s', 'devsoom-autodeploy'),
+            __('Repository: %s', 'devsroom-autodeploy'),
             $deployment['repo_owner'] . '/' . $deployment['repo_name']
         ) . "\n";
         $message .= sprintf(
             /* translators: %s: Branch */
-            __('Branch: %s', 'devsoom-autodeploy'),
+            __('Branch: %s', 'devsroom-autodeploy'),
             $deployment['branch']
         ) . "\n";
 
         if (! empty($deployment['error_message'])) {
-            $message .= "\n" . __('Error:', 'devsoom-autodeploy') . "\n";
+            $message .= "\n" . __('Error:', 'devsroom-autodeploy') . "\n";
             $message .= $deployment['error_message'] . "\n";
         }
 
         $message .= "\n" . sprintf(
             /* translators: %s: URL */
-            __('View deployment logs: %s', 'devsoom-autodeploy'),
-            admin_url('admin.php?page=devsoom-autodeploy-deployments')
+            __('View deployment logs: %s', 'devsroom-autodeploy'),
+            admin_url('admin.php?page=devsroom-autodeploy-deployments')
         );
 
         return $message;
@@ -243,24 +243,24 @@ class Notification
     {
         $message = sprintf(
             /* translators: %s: Plugin name */
-            __('Security scan detected issues in %s.', 'devsoom-autodeploy'),
+            __('Security scan detected issues in %s.', 'devsroom-autodeploy'),
             $scan_result['plugin_name']
         ) . "\n\n";
 
-        $message .= __('Scan Results:', 'devsoom-autodeploy') . "\n";
+        $message .= __('Scan Results:', 'devsroom-autodeploy') . "\n";
         $message .= sprintf(
             /* translators: %d: Number of files scanned */
-            __('Files Scanned: %d', 'devsoom-autodeploy'),
+            __('Files Scanned: %d', 'devsroom-autodeploy'),
             $scan_result['scanned']
         ) . "\n";
         $message .= sprintf(
             /* translators: %d: Number of issues found */
-            __('Issues Found: %d', 'devsoom-autodeploy'),
+            __('Issues Found: %d', 'devsroom-autodeploy'),
             $scan_result['errors']
         ) . "\n";
 
         if (! empty($scan_result['issues'])) {
-            $message .= "\n" . __('Issues:', 'devsoom-autodeploy') . "\n";
+            $message .= "\n" . __('Issues:', 'devsroom-autodeploy') . "\n";
             foreach ($scan_result['issues'] as $issue) {
                 $message .= sprintf(
                     "[%s] %s\n",
@@ -310,7 +310,7 @@ class Notification
      */
     private function is_notifications_enabled(): bool
     {
-        return (bool) get_option('devsoom_autodeploy_enable_notifications', true);
+        return (bool) get_option('devsroom_autodeploy_enable_notifications', true);
     }
 
     /**
@@ -320,7 +320,7 @@ class Notification
      */
     private function get_notification_email(): string
     {
-        $email = get_option('devsoom_autodeploy_notification_email', '');
+        $email = get_option('devsroom_autodeploy_notification_email', '');
 
         if (empty($email)) {
             $email = get_option('admin_email');

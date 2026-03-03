@@ -6,7 +6,7 @@
  * @package Devsoom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Core;
+namespace Devsroom_AutoDeploy\Core;
 
 /**
  * Class Backup_Manager
@@ -57,8 +57,8 @@ class Backup_Manager
      */
     private function __construct()
     {
-        $this->backup_dir      = WP_CONTENT_DIR . '/devsoom-autodeploy-backups';
-        $this->max_backup_size = (int) get_option('devsoom_autodeploy_max_backup_size_mb', 100) * 1024 * 1024;
+        $this->backup_dir      = WP_CONTENT_DIR . '/devsroom-autodeploy-backups';
+        $this->max_backup_size = (int) get_option('devsroom_autodeploy_max_backup_size_mb', 100) * 1024 * 1024;
 
         // Create backup directory if it doesn't exist.
         $this->ensure_backup_directory();
@@ -155,7 +155,7 @@ class Backup_Manager
 
         // Save backup record to database.
         global $wpdb;
-        $table_name = $wpdb->prefix . 'devsoom_backups';
+        $table_name = $wpdb->prefix . 'devsroom_backups';
 
         $wpdb->insert(
             $table_name,
@@ -164,7 +164,7 @@ class Backup_Manager
                 'backup_path'  => $backup_path,
                 'file_size'    => filesize($backup_path),
                 'commit_hash'  => $commit_hash,
-                'expires_at'   => date('Y-m-d H:i:s', strtotime('+' . get_option('devsoom_autodeploy_backup_retention_days', 30) . ' days')),
+                'expires_at'   => date('Y-m-d H:i:s', strtotime('+' . get_option('devsroom_autodeploy_backup_retention_days', 30) . ' days')),
             ),
             array('%d', '%s', '%d', '%s', '%s')
         );
@@ -226,7 +226,7 @@ class Backup_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_backups';
+        $table_name = $wpdb->prefix . 'devsroom_backups';
 
         $backup = $wpdb->get_row(
             $wpdb->prepare(
@@ -266,7 +266,7 @@ class Backup_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_backups';
+        $table_name = $wpdb->prefix . 'devsroom_backups';
 
         $backups = $wpdb->get_results(
             $wpdb->prepare(
@@ -289,7 +289,7 @@ class Backup_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_backups';
+        $table_name = $wpdb->prefix . 'devsroom_backups';
         $now        = current_time('mysql');
 
         // Get expired backups.

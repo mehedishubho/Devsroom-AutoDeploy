@@ -6,7 +6,7 @@
  * @package Devsoom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Core;
+namespace Devsroom_AutoDeploy\Core;
 
 /**
  * Class Auth_Manager
@@ -57,8 +57,8 @@ class Auth_Manager
      */
     private function __construct()
     {
-        $this->client_id     = get_option('devsoom_autodeploy_github_client_id', '');
-        $this->client_secret = get_option('devsoom_autodeploy_github_client_secret', '');
+        $this->client_id     = get_option('devsroom_autodeploy_github_client_id', '');
+        $this->client_secret = get_option('devsroom_autodeploy_github_client_secret', '');
     }
 
     /**
@@ -73,7 +73,7 @@ class Auth_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_auth_tokens';
+        $table_name = $wpdb->prefix . 'devsroom_auth_tokens';
 
         // Encrypt the token.
         $encrypted_token = $this->encrypt_token($token);
@@ -108,7 +108,7 @@ class Auth_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_auth_tokens';
+        $table_name = $wpdb->prefix . 'devsroom_auth_tokens';
 
         // Encrypt tokens.
         $encrypted_access  = $this->encrypt_token($access_token);
@@ -146,7 +146,7 @@ class Auth_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_auth_tokens';
+        $table_name = $wpdb->prefix . 'devsroom_auth_tokens';
 
         $token = $wpdb->get_row(
             $wpdb->prepare(
@@ -180,7 +180,7 @@ class Auth_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_auth_tokens';
+        $table_name = $wpdb->prefix . 'devsroom_auth_tokens';
 
         $tokens = $wpdb->get_results(
             $wpdb->prepare(
@@ -203,7 +203,7 @@ class Auth_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_auth_tokens';
+        $table_name = $wpdb->prefix . 'devsroom_auth_tokens';
 
         $result = $wpdb->update(
             $table_name,
@@ -243,11 +243,11 @@ class Auth_Manager
         $challenge = $this->generate_code_challenge($verifier);
 
         // Store verifier for later use.
-        update_user_meta($user_id, 'devsoom_autodeploy_oauth_verifier', $verifier);
+        update_user_meta($user_id, 'devsroom_autodeploy_oauth_verifier', $verifier);
 
         $params = array(
             'client_id'             => $this->client_id,
-            'redirect_uri'          => admin_url('admin.php?page=devsoom-autodeploy-settings&oauth_callback=1'),
+            'redirect_uri'          => admin_url('admin.php?page=devsroom-autodeploy-settings&oauth_callback=1'),
             'scope'                 => 'repo repo:status',
             'state'                 => $state,
             'code_challenge'        => $challenge,
@@ -266,7 +266,7 @@ class Auth_Manager
      */
     public function exchange_code_for_token(string $code, int $user_id): array|false
     {
-        $verifier = get_user_meta($user_id, 'devsoom_autodeploy_oauth_verifier', true);
+        $verifier = get_user_meta($user_id, 'devsroom_autodeploy_oauth_verifier', true);
 
         if (! $verifier) {
             return false;
@@ -276,7 +276,7 @@ class Auth_Manager
             'client_id'         => $this->client_id,
             'client_secret'     => $this->client_secret,
             'code'              => $code,
-            'redirect_uri'      => admin_url('admin.php?page=devsoom-autodeploy-settings&oauth_callback=1'),
+            'redirect_uri'      => admin_url('admin.php?page=devsroom-autodeploy-settings&oauth_callback=1'),
             'code_verifier'     => $verifier,
         );
 
@@ -301,7 +301,7 @@ class Auth_Manager
         }
 
         // Clear verifier.
-        delete_user_meta($user_id, 'devsoom_autodeploy_oauth_verifier');
+        delete_user_meta($user_id, 'devsroom_autodeploy_oauth_verifier');
 
         return $body;
     }
@@ -349,7 +349,7 @@ class Auth_Manager
 
         // Update token in database.
         global $wpdb;
-        $table_name = $wpdb->prefix . 'devsoom_auth_tokens';
+        $table_name = $wpdb->prefix . 'devsroom_auth_tokens';
 
         $encrypted_access = $this->encrypt_token($body['access_token']);
         $encrypted_refresh = isset($body['refresh_token']) ? $this->encrypt_token($body['refresh_token']) : $token['refresh_token'];
@@ -415,11 +415,11 @@ class Auth_Manager
      */
     private function get_encryption_key(): string
     {
-        $key = get_option('devsoom_autodeploy_encryption_key');
+        $key = get_option('devsroom_autodeploy_encryption_key');
 
         if (! $key) {
             $key = wp_generate_password(32, true, true);
-            update_option('devsoom_autodeploy_encryption_key', $key);
+            update_option('devsroom_autodeploy_encryption_key', $key);
         }
 
         return $key;
@@ -434,7 +434,7 @@ class Auth_Manager
     private function generate_oauth_state(int $user_id): string
     {
         $state = wp_generate_password(32, false, false);
-        update_user_meta($user_id, 'devsoom_autodeploy_oauth_state', $state);
+        update_user_meta($user_id, 'devsroom_autodeploy_oauth_state', $state);
         return $state;
     }
 
@@ -447,8 +447,8 @@ class Auth_Manager
      */
     public function verify_oauth_state(int $user_id, string $state): bool
     {
-        $stored_state = get_user_meta($user_id, 'devsoom_autodeploy_oauth_state', true);
-        delete_user_meta($user_id, 'devsoom_autodeploy_oauth_state');
+        $stored_state = get_user_meta($user_id, 'devsroom_autodeploy_oauth_state', true);
+        delete_user_meta($user_id, 'devsroom_autodeploy_oauth_state');
         return hash_equals($stored_state, $state);
     }
 

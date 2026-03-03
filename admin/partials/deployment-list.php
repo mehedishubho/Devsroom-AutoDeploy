@@ -3,7 +3,7 @@
 /**
  * Deployment list template.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
 // Exit if accessed directly.
@@ -13,16 +13,16 @@ if (! defined('ABSPATH')) {
 
 ?>
 
-<div class="wrap devsoom-autodeploy">
-    <h1><?php esc_html_e('Deployments', 'devsoom-autodeploy'); ?></h1>
+<div class="wrap devsroom-autodeploy">
+    <h1><?php esc_html_e('Deployments', 'devsroom-autodeploy'); ?></h1>
 
     <?php
     // Status filter.
     $statuses = array(
-        ''       => __('All', 'devsoom-autodeploy'),
-        'success' => __('Success', 'devsoom-autodeploy'),
-        'failed'  => __('Failed', 'devsoom-autodeploy'),
-        'pending' => __('Pending', 'devsoom-autodeploy'),
+        ''       => __('All', 'devsroom-autodeploy'),
+        'success' => __('Success', 'devsroom-autodeploy'),
+        'failed'  => __('Failed', 'devsroom-autodeploy'),
+        'pending' => __('Pending', 'devsroom-autodeploy'),
     );
     ?>
 
@@ -32,7 +32,7 @@ if (! defined('ABSPATH')) {
                 <?php if ($status === $key) : ?>
                     <strong><?php echo esc_html($label); ?></strong>
                 <?php else : ?>
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=devsoom-autodeploy-deployments&status=' . $key)); ?>">
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-deployments&status=' . $key)); ?>">
                         <?php echo esc_html($label); ?>
                     </a>
                 <?php endif; ?>
@@ -44,19 +44,19 @@ if (! defined('ABSPATH')) {
     </ul>
 
     <?php if (empty($deployments)) : ?>
-        <p><?php esc_html_e('No deployments found.', 'devsoom-autodeploy'); ?></p>
+        <p><?php esc_html_e('No deployments found.', 'devsroom-autodeploy'); ?></p>
     <?php else : ?>
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th><?php esc_html_e('Plugin', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Repository', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Branch', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Commit', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Trigger', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Status', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Duration', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Date', 'devsoom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Plugin', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Repository', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Branch', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Commit', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Trigger', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Status', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Duration', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Date', 'devsroom-autodeploy'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -64,7 +64,7 @@ if (! defined('ABSPATH')) {
                     <tr>
                         <td>
                             <strong>
-                                <a href="<?php echo esc_url(admin_url('admin.php?page=devsoom-autodeploy-deployments&deployment_id=' . $deployment['id'])); ?>">
+                                <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-deployments&deployment_id=' . $deployment['id'])); ?>">
                                     <?php echo esc_html($deployment['plugin_slug']); ?>
                                 </a>
                             </strong>
@@ -79,9 +79,9 @@ if (! defined('ABSPATH')) {
                         <td>
                             <?php
                             $trigger_labels = array(
-                                'webhook'  => __('Webhook', 'devsoom-autodeploy'),
-                                'polling'  => __('Polling', 'devsoom-autodeploy'),
-                                'manual'   => __('Manual', 'devsoom-autodeploy'),
+                                'webhook'  => __('Webhook', 'devsroom-autodeploy'),
+                                'polling'  => __('Polling', 'devsroom-autodeploy'),
+                                'manual'   => __('Manual', 'devsroom-autodeploy'),
                             );
                             echo esc_html($trigger_labels[$deployment['trigger_type']] ?? $deployment['trigger_type']);
                             ?>
@@ -127,7 +127,7 @@ if (! defined('ABSPATH')) {
                 <div class="tablenav-pages">
                     <?php
                     for ($i = 1; $i <= $total_pages; $i++) :
-                        $url = admin_url('admin.php?page=devsoom-autodeploy-deployments&paged=' . $i);
+                        $url = admin_url('admin.php?page=devsroom-autodeploy-deployments&paged=' . $i);
                         if (! empty($status)) {
                             $url .= '&status=' . $status;
                         }

@@ -3,10 +3,10 @@
 /**
  * Database schema handler.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Database;
+namespace Devsroom_AutoDeploy\Database;
 
 /**
  * Class Schema
@@ -71,7 +71,7 @@ class Schema
         $schema->create_backups_table();
 
         // Set database version.
-        update_option('devsoom_autodeploy_db_version', DEVSOMM_AUTODEPLOY_VERSION);
+        update_option('devsroom_autodeploy_db_version', DEVSROOM_AUTODEPLOY_VERSION);
     }
 
     /**
@@ -83,7 +83,7 @@ class Schema
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -121,7 +121,7 @@ class Schema
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_auth_tokens';
+        $table_name = $wpdb->prefix . 'devsroom_auth_tokens';
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -153,7 +153,7 @@ class Schema
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_deployments';
+        $table_name = $wpdb->prefix . 'devsroom_deployments';
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -190,7 +190,7 @@ class Schema
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_logs';
+        $table_name = $wpdb->prefix . 'devsroom_logs';
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -217,7 +217,7 @@ class Schema
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_backups';
+        $table_name = $wpdb->prefix . 'devsroom_backups';
 
         $sql = "CREATE TABLE IF NOT EXISTS $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -247,17 +247,17 @@ class Schema
         global $wpdb;
 
         $tables = array(
-            $wpdb->prefix . 'devsoom_repositories',
-            $wpdb->prefix . 'devsoom_auth_tokens',
-            $wpdb->prefix . 'devsoom_deployments',
-            $wpdb->prefix . 'devsoom_logs',
-            $wpdb->prefix . 'devsoom_backups',
+            $wpdb->prefix . 'devsroom_repositories',
+            $wpdb->prefix . 'devsroom_auth_tokens',
+            $wpdb->prefix . 'devsroom_deployments',
+            $wpdb->prefix . 'devsroom_logs',
+            $wpdb->prefix . 'devsroom_backups',
         );
 
         foreach ($tables as $table) {
             $wpdb->query("DROP TABLE IF EXISTS $table");
         }
 
-        delete_option('devsoom_autodeploy_db_version');
+        delete_option('devsroom_autodeploy_db_version');
     }
 }

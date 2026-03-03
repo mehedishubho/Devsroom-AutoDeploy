@@ -3,7 +3,7 @@
 /**
  * Uninstall plugin.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
 // If uninstall is not called from WordPress, exit.
@@ -12,18 +12,18 @@ if (! defined('WP_UNINSTALL_PLUGIN')) {
 }
 
 // Load plugin files.
-require_once plugin_dir_path(__FILE__) . 'devsoom-autodeploy.php';
+require_once plugin_dir_path(__FILE__) . 'devsroom-autodeploy.php';
 
 // Delete all plugin options.
 $options = array(
-    'devsoom_autodeploy_activated_at',
-    'devsoom_autodeploy_polling_interval',
-    'devsoom_autodeploy_backup_retention_days',
-    'devsoom_autodeploy_enable_notifications',
-    'devsoom_autodeploy_notification_email',
-    'devsoom_autodeploy_max_backup_size_mb',
-    'devsoom_autodeploy_scan_level_default',
-    'devsoom_autodeploy_db_version',
+    'devsroom_autodeploy_activated_at',
+    'devsroom_autodeploy_polling_interval',
+    'devsroom_autodeploy_backup_retention_days',
+    'devsroom_autodeploy_enable_notifications',
+    'devsroom_autodeploy_notification_email',
+    'devsroom_autodeploy_max_backup_size_mb',
+    'devsroom_autodeploy_scan_level_default',
+    'devsroom_autodeploy_db_version',
 );
 
 foreach ($options as $option) {
@@ -31,16 +31,16 @@ foreach ($options as $option) {
 }
 
 // Delete all user meta.
-delete_metadata('user', 0, 'devsoom_autodeploy_oauth_state', '', true);
-delete_metadata('user', 0, 'devsoom_autodeploy_oauth_verifier', '', true);
+delete_metadata('user', 0, 'devsroom_autodeploy_oauth_state', '', true);
+delete_metadata('user', 0, 'devsroom_autodeploy_oauth_verifier', '', true);
 
 // Drop all database tables.
-use Devsoom_AutoDeploy\Database\Schema;
+use Devsroom_AutoDeploy\Database\Schema;
 
 Schema::drop_tables();
 
 // Delete backup directory.
-$backup_dir = WP_CONTENT_DIR . '/devsoom-autodeploy-backups';
+$backup_dir = WP_CONTENT_DIR . '/devsroom-autodeploy-backups';
 if (is_dir($backup_dir)) {
     $files = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($backup_dir, RecursiveDirectoryIterator::SKIP_DOTS),

@@ -3,10 +3,10 @@
 /**
  * Plugin deactivation handler.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy;
+namespace Devsroom_AutoDeploy;
 
 /**
  * Class Deactivator
@@ -26,8 +26,8 @@ class Deactivator
     public static function deactivate(): void
     {
         // Clear scheduled events.
-        wp_clear_scheduled_hook('devsoom_autodeploy_polling_event');
-        wp_clear_scheduled_hook('devsoom_autodeploy_cleanup_event');
+        wp_clear_scheduled_hook('devsroom_autodeploy_polling_event');
+        wp_clear_scheduled_hook('devsroom_autodeploy_cleanup_event');
 
         // Flush rewrite rules.
         flush_rewrite_rules();

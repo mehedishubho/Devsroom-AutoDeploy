@@ -1,11 +1,11 @@
 /**
- * Devsoom AutoDeploy Admin Styles
+ * Devsroom AutoDeploy Admin Styles
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
 /* Stats Grid */
-.devsoom-autodeploy-stats-grid {
+.devsroom-autodeploy-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
@@ -14,11 +14,11 @@
 }
 
 /* Recent Deployments Notice */
-.devsoom-recent-deployments-notice {
+.devsroom-recent-deployments-notice {
   order: 2;
 }
 
-.devsoom-autodeploy-stat-card {
+.devsroom-autodeploy-stat-card {
   background: #fff;
   border: 1px solid #ccd0d5;
   border-radius: 4px;
@@ -26,13 +26,13 @@
   text-align: center;
 }
 
-.devsoom-autodeploy-stat-card h3 {
-  margin: 0 0 10px 0;
+.devsroom-autodeploy-stat-card h3 {
+  margin: 0 10px 0;
   font-size: 14px;
   color: #666;
 }
 
-.devsoom-autodeploy-stat-card .stat-value {
+.devsroom-autodeploy-stat-card .stat-value {
   font-size: 36px;
   font-weight: bold;
   color: #2271b1;
@@ -68,19 +68,9 @@
   color: #0c5460;
 }
 
-.status-active {
-  background-color: #d4edda;
-  color: #155724;
-}
-
 .status-paused {
   background-color: #fff3cd;
   color: #856404;
-}
-
-.status-error-badge {
-  background-color: #f8d7da;
-  color: #721c24;
 }
 
 /* Update Badges */
@@ -151,34 +141,33 @@
 }
 
 /* Tables */
-.devsoom-autodeploy .wp-list-table code {
+.devsroom-autodeploy .wp-list-table code {
   background: #f5f5f5;
   padding: 2px 6px;
   border-radius: 3px;
   font-size: 12px;
 }
 
-/* Form Tables */
-.devsoom-autodeploy .form-table th {
+.devsroom-autodeploy .form-table th {
   width: 200px;
 }
 
-.devsoom-autodeploy .form-table td input[type="text"],
-.devsoom-autodeploy .form-table td input[type="email"],
-.devsoom-autodeploy .form-table td input[type="password"],
-.devsoom-autodeploy .form-table td input[type="number"],
-.devsoom-autodeploy .form-table td select {
+.devsroom-autodeploy .form-table td input[type="text"],
+.devsroom-autodeploy .form-table td input[type="email"],
+.devsroom-autodeploy .form-table td input[type="password"],
+.devsroom-autodeploy .form-table td input[type="number"],
+.devsroom-autodeploy .form-table td select {
   width: 300px;
 }
 
-.devsoom-autodeploy .form-table .description {
+.devsroom-autodeploy .form-table .description {
   margin-top: 5px;
   font-size: 13px;
   color: #666;
 }
 
 /* Buttons */
-.devsoom-autodeploy .button-small {
+.devsroom-autodeploy .button-small {
   padding: 2px 8px;
   font-size: 13px;
   line-height: 1.5;
@@ -186,23 +175,23 @@
 }
 
 /* Loading */
-.devsoom-autodeploy .loading {
+.devsroom-autodeploy .loading {
   opacity: 0.6;
   pointer-events: none;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .devsoom-autodeploy-stats-grid {
+  .devsroom-autodeploy-stats-grid {
     grid-template-columns: 1fr;
   }
 
-  .devsoom-autodeploy .form-table th {
+  .devsroom-autodeploy .form-table th {
     width: auto;
     display: block;
   }
 
-  .devsoom-autodeploy .form-table td {
+  .devsroom-autodeploy .form-table td {
     display: block;
     width: 100%;
     box-sizing: border-box;

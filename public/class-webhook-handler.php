@@ -3,13 +3,13 @@
 /**
  * Webhook Handler class.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Public;
+namespace Devsroom_AutoDeploy\Public;
 
-use Devsoom_AutoDeploy\Core\Deployment_Manager;
-use Devsoom_AutoDeploy\Core\GitHub_API;
+use Devsroom_AutoDeploy\Core\Deployment_Manager;
+use Devsroom_AutoDeploy\Core\GitHub_API;
 
 /**
  * Class Webhook_Handler
@@ -29,7 +29,7 @@ class Webhook_Handler
     public function register_routes(): void
     {
         register_rest_route(
-            'devsoom-autodeploy/v1',
+            'devsroom-autodeploy/v1',
             '/webhook/(?P<secret>[a-zA-Z0-9]+)',
             array(
                 'methods'             => 'POST',
@@ -172,7 +172,7 @@ class Webhook_Handler
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         $repository = $wpdb->get_row(
             $wpdb->prepare(

@@ -6,7 +6,7 @@
  * @package Devsoom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Core;
+namespace Devsroom_AutoDeploy\Core;
 
 /**
  * Class Deployment_Manager
@@ -170,7 +170,7 @@ class Deployment_Manager
         $plugin_path = WP_PLUGIN_DIR . '/' . $repository['plugin_slug'];
 
         // Safety check: Prevent overwriting the AutoDeploy plugin itself.
-        $autodeploy_plugin_path = WP_PLUGIN_DIR . '/' . DEVSOMM_AUTODEPLOY_PLUGIN_SLUG;
+        $autodeploy_plugin_path = WP_PLUGIN_DIR . '/' . DEVSROOM_AUTODEPLOY_PLUGIN_SLUG;
         $plugin_path_real = realpath($plugin_path);
         $autodeploy_path_real = realpath($autodeploy_plugin_path);
 
@@ -210,7 +210,7 @@ class Deployment_Manager
         }
 
         // Download repository archive.
-        $temp_dir = get_temp_dir() . 'devsoom-autodeploy-' . $repository_id . '-' . time();
+        $temp_dir = get_temp_dir() . 'devsroom-autodeploy-' . $repository_id . '-' . time();
         wp_mkdir_p($temp_dir);
 
         $archive_path = $temp_dir . '/archive.zip';
@@ -367,7 +367,7 @@ class Deployment_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         $repository = $wpdb->get_row(
             $wpdb->prepare(
@@ -395,7 +395,7 @@ class Deployment_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_deployments';
+        $table_name = $wpdb->prefix . 'devsroom_deployments';
 
         $result = $wpdb->insert(
             $table_name,
@@ -427,7 +427,7 @@ class Deployment_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_deployments';
+        $table_name = $wpdb->prefix . 'devsroom_deployments';
 
         $data = array(
             'status' => $status,
@@ -467,7 +467,7 @@ class Deployment_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_deployments';
+        $table_name = $wpdb->prefix . 'devsroom_deployments';
 
         $result = $wpdb->update(
             $table_name,
@@ -493,7 +493,7 @@ class Deployment_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         $result = $wpdb->update(
             $table_name,
@@ -519,7 +519,7 @@ class Deployment_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_deployments';
+        $table_name = $wpdb->prefix . 'devsroom_deployments';
 
         $deployment = $wpdb->get_var(
             $wpdb->prepare(

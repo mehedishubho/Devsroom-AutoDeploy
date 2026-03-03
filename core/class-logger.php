@@ -6,7 +6,7 @@
  * @package Devsoom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Core;
+namespace Devsroom_AutoDeploy\Core;
 
 /**
  * Class Logger
@@ -103,7 +103,7 @@ class Logger
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_logs';
+        $table_name = $wpdb->prefix . 'devsroom_logs';
 
         $context_json = ! empty($context) ? wp_json_encode($context) : null;
 
@@ -132,7 +132,7 @@ class Logger
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_logs';
+        $table_name = $wpdb->prefix . 'devsroom_logs';
 
         $logs = $wpdb->get_results(
             $wpdb->prepare(
@@ -164,7 +164,7 @@ class Logger
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_logs';
+        $table_name = $wpdb->prefix . 'devsroom_logs';
 
         $logs = $wpdb->get_results(
             $wpdb->prepare(
@@ -188,7 +188,7 @@ class Logger
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_logs';
+        $table_name = $wpdb->prefix . 'devsroom_logs';
 
         $logs = $wpdb->get_results(
             $wpdb->prepare(
@@ -211,7 +211,7 @@ class Logger
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_logs';
+        $table_name = $wpdb->prefix . 'devsroom_logs';
 
         return (int) $wpdb->delete(
             $table_name,
@@ -230,7 +230,7 @@ class Logger
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_logs';
+        $table_name = $wpdb->prefix . 'devsroom_logs';
         $cutoff_date = date('Y-m-d H:i:s', strtotime("-$days days"));
 
         return (int) $wpdb->query(

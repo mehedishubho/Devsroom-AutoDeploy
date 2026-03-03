@@ -1,17 +1,17 @@
-<?php
+﻿<?php
 
 /**
  * Admin class.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Admin;
+namespace Devsroom_AutoDeploy\Admin;
 
-use Devsoom_AutoDeploy\Admin\Dashboard;
-use Devsoom_AutoDeploy\Admin\Repository_Manager;
-use Devsoom_AutoDeploy\Admin\Deployment_View;
-use Devsoom_AutoDeploy\Admin\Settings;
+use Devsroom_AutoDeploy\Admin\Dashboard;
+use Devsroom_AutoDeploy\Admin\Repository_Manager;
+use Devsroom_AutoDeploy\Admin\Deployment_View;
+use Devsroom_AutoDeploy\Admin\Settings;
 
 /**
  * Class Admin
@@ -47,6 +47,7 @@ class Admin
     {
         $this->plugin_name = $plugin_name;
         $this->version     = $version;
+        $this->loader      = Loader::get_instance();
     }
 
     /**
@@ -59,17 +60,18 @@ class Admin
         // Get updates count.
         $repository_manager = new Repository_Manager();
         $updates_count = $repository_manager->get_updates_count();
-        $menu_title = __('Repositories', 'devsoom-autodeploy');
+        $menu_title = __('Repositories', 'devsroom-autodeploy');
         if ($updates_count > 0) {
             $menu_title .= ' <span class="update-plugins count-' . esc_attr($updates_count) . '"><span class="update-count">' . number_format_i18n($updates_count) . '</span></span>';
         }
 
         // Main menu.
         add_menu_page(
-            __('Devsoom AutoDeploy', 'devsoom-autodeploy'),
-            __('AutoDeploy', 'devsoom-autodeploy'),
+            'devsroom-autodeploy',
+            __('Devsroom AutoDeploy', 'devsroom-autodeploy'),
+            __('AutoDeploy', 'devsroom-autodeploy'),
             'manage_options',
-            'devsoom-autodeploy',
+            'devsroom-autodeploy',
             array($this, 'display_dashboard'),
             'dashicons-update-alt',
             30
@@ -77,41 +79,41 @@ class Admin
 
         // Dashboard submenu.
         add_submenu_page(
-            'devsoom-autodeploy',
-            __('Dashboard', 'devsoom-autodeploy'),
-            __('Dashboard', 'devsoom-autodeploy'),
+            'devsroom-autodeploy',
+            __('Dashboard', 'devsroom-autodeploy'),
+            __('Dashboard', 'devsroom-autodeploy'),
             'manage_options',
-            'devsoom-autodeploy',
+            'devsroom-autodeploy',
             array($this, 'display_dashboard')
         );
 
         // Repositories submenu.
         add_submenu_page(
-            'devsoom-autodeploy',
-            __('Repositories', 'devsoom-autodeploy'),
+            'devsroom-autodeploy',
+            __('Repositories', 'devsroom-autodeploy'),
             $menu_title,
             'manage_options',
-            'devsoom-autodeploy-repositories',
+            'devsroom-autodeploy-repositories',
             array($this, 'display_repositories')
         );
 
         // Deployments submenu.
         add_submenu_page(
-            'devsoom-autodeploy',
-            __('Deployments', 'devsoom-autodeploy'),
-            __('Deployments', 'devsoom-autodeploy'),
+            'devsroom-autodeploy',
+            __('Deployments', 'devsroom-autodeploy'),
+            __('Deployments', 'devsroom-autodeploy'),
             'manage_options',
-            'devsoom-autodeploy-deployments',
+            'devsroom-autodeploy-deployments',
             array($this, 'display_deployments')
         );
 
         // Settings submenu.
         add_submenu_page(
-            'devsoom-autodeploy',
-            __('Settings', 'devsoom-autodeploy'),
-            __('Settings', 'devsoom-autodeploy'),
+            'devsroom-autodeploy',
+            __('Settings', 'devsroom-autodeploy'),
+            __('Settings', 'devsroom-autodeploy'),
             'manage_options',
-            'devsoom-autodeploy-settings',
+            'devsroom-autodeploy-settings',
             array($this, 'display_settings')
         );
     }
@@ -174,13 +176,13 @@ class Admin
     public function enqueue_styles(string $hook): void
     {
         // Only load on our plugin pages.
-        if (strpos($hook, 'devsoom-autodeploy') === false) {
+        if (strpos($hook, 'devsroom-autodeploy') === false) {
             return;
         }
 
         wp_enqueue_style(
             $this->plugin_name,
-            DEVSOMM_AUTODEPLOY_URL . 'assets/css/admin.css',
+            DEVSROOM_AUTODEPLOY_URL . 'assets/css/admin.css',
             array(),
             $this->version,
             'all'
@@ -196,13 +198,13 @@ class Admin
     public function enqueue_scripts(string $hook): void
     {
         // Only load on our plugin pages.
-        if (strpos($hook, 'devsoom-autodeploy') === false) {
+        if (strpos($hook, 'devsroom-autodeploy') === false) {
             return;
         }
 
         wp_enqueue_script(
             $this->plugin_name,
-            DEVSOMM_AUTODEPLOY_URL . 'assets/js/admin.js',
+            DEVSROOM_AUTODEPLOY_URL . 'assets/js/admin.js',
             array('jquery'),
             $this->version,
             false
@@ -211,16 +213,16 @@ class Admin
         // Localize script.
         wp_localize_script(
             $this->plugin_name,
-            'devsoom_autodeploy',
+            'devsroom_autodeploy',
             array(
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce'    => wp_create_nonce('devsoom_autodeploy_nonce'),
+                'nonce'    => wp_create_nonce('devsroom_autodeploy_nonce'),
                 'strings'  => array(
-                    'confirm_delete' => __('Are you sure you want to delete this item?', 'devsoom-autodeploy'),
-                    'confirm_deploy' => __('Are you sure you want to deploy this plugin?', 'devsoom-autodeploy'),
-                    'deploying'     => __('Deploying...', 'devsoom-autodeploy'),
-                    'success'       => __('Success!', 'devsoom-autodeploy'),
-                    'error'         => __('Error!', 'devsoom-autodeploy'),
+                    'confirm_delete' => __('Are you sure you want to delete this item?', 'devsroom-autodeploy'),
+                    'confirm_deploy' => __('Are you sure you want to deploy this plugin?', 'devsroom-autodeploy'),
+                    'deploying'     => __('Deploying...', 'devsroom-autodeploy'),
+                    'success'       => __('Success!', 'devsroom-autodeploy'),
+                    'error'         => __('Error!', 'devsroom-autodeploy'),
                 ),
             )
         );

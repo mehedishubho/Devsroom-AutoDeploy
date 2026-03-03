@@ -3,10 +3,10 @@
 /**
  * Polling Scheduler class.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Core;
+namespace Devsroom_AutoDeploy\Core;
 
 /**
  * Class Polling_Scheduler
@@ -44,10 +44,10 @@ class Polling_Scheduler
     private function __construct()
     {
         // Register polling event.
-        add_action('devsoom_autodeploy_polling_event', array($this, 'poll_repositories'));
+        add_action('devsroom_autodeploy_polling_event', array($this, 'poll_repositories'));
 
         // Register cleanup event.
-        add_action('devsoom_autodeploy_cleanup_event', array($this, 'cleanup'));
+        add_action('devsroom_autodeploy_cleanup_event', array($this, 'cleanup'));
     }
 
     /**
@@ -57,13 +57,13 @@ class Polling_Scheduler
      */
     public function schedule(): void
     {
-        if (! wp_next_scheduled('devsoom_autodeploy_polling_event')) {
-            $interval = get_option('devsoom_autodeploy_polling_interval', 'hourly');
-            wp_schedule_event(time(), $interval, 'devsoom_autodeploy_polling_event');
+        if (! wp_next_scheduled('devsroom_autodeploy_polling_event')) {
+            $interval = get_option('devsroom_autodeploy_polling_interval', 'hourly');
+            wp_schedule_event(time(), $interval, 'devsroom_autodeploy_polling_event');
         }
 
-        if (! wp_next_scheduled('devsoom_autodeploy_cleanup_event')) {
-            wp_schedule_event(time(), 'daily', 'devsoom_autodeploy_cleanup_event');
+        if (! wp_next_scheduled('devsroom_autodeploy_cleanup_event')) {
+            wp_schedule_event(time(), 'daily', 'devsroom_autodeploy_cleanup_event');
         }
     }
 
@@ -74,8 +74,8 @@ class Polling_Scheduler
      */
     public function clear_schedule(): void
     {
-        wp_clear_scheduled_hook('devsoom_autodeploy_polling_event');
-        wp_clear_scheduled_hook('devsoom_autodeploy_cleanup_event');
+        wp_clear_scheduled_hook('devsroom_autodeploy_polling_event');
+        wp_clear_scheduled_hook('devsroom_autodeploy_cleanup_event');
     }
 
     /**
@@ -87,7 +87,7 @@ class Polling_Scheduler
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         // Get all active repositories with auto-deploy enabled.
         $repositories = $wpdb->get_results(

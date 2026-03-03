@@ -1,7 +1,7 @@
 /**
- * Devsoom AutoDeploy Admin Scripts
+ * Devsroom AutoDeploy Admin Scripts
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
 (function ($) {
@@ -11,56 +11,56 @@
     $(document).ready(function () {
 
         // Confirm delete actions
-        $('.devsoom-autodeploy').on('click', '[name*="delete"]', function (e) {
-            if (!confirm(devsoom_autodeploy.strings.confirm_delete)) {
+        $('.devsroom-autodeploy').on('click', '[name*="delete"]', function (e) {
+            if (!confirm(devsroom_autodeploy.strings.confirm_delete)) {
                 e.preventDefault();
                 return false;
             }
         });
 
         // Confirm deploy actions
-        $('.devsoom-autodeploy').on('click', '[name="devsoom_autodeploy_deploy_now"]', function (e) {
-            if (!confirm(devsoom_autodeploy.strings.confirm_deploy)) {
+        $('.devsroom-autodeploy').on('click', '[name="devsroom_autodeploy_deploy_now"]', function (e) {
+            if (!confirm(devsroom_autodeploy.strings.confirm_deploy)) {
                 e.preventDefault();
                 return false;
             }
         });
 
         // AJAX deployment trigger
-        $('.devsoom-autodeploy').on('click', '.ajax-deploy', function (e) {
+        $('.devsroom-autodeploy').on('click', '.ajax-deploy', function (e) {
             e.preventDefault();
 
             var $button = $(this);
             var repositoryId = $button.data('repository-id');
 
-            $button.prop('disabled', true).text(devsoom_autodeploy.strings.deploying);
+            $button.prop('disabled', true).text(devsroom_autodeploy.strings.deploying);
 
             $.ajax({
-                url: devsoom_autodeploy.ajax_url,
+                url: devsroom_autodeploy.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'devsoom_autodeploy_deploy',
-                    nonce: devsoom_autodeploy.nonce,
+                    action: 'devsroom_autodeploy_deploy',
+                    nonce: devsroom_autodeploy.nonce,
                     repository_id: repositoryId
                 },
                 success: function (response) {
                     if (response.success) {
-                        alert(devsoom_autodeploy.strings.success);
+                        alert(devsroom_autodeploy.strings.success);
                         location.reload();
                     } else {
-                        alert(devsoom_autodeploy.strings.error + ': ' + response.data.message);
+                        alert(devsroom_autodeploy.strings.error + ': ' + response.data.message);
                         $button.prop('disabled', false).text($button.data('original-text'));
                     }
                 },
                 error: function (xhr, status, error) {
-                    alert(devsoom_autodeploy.strings.error + ': ' + error);
+                    alert(devsroom_autodeploy.strings.error + ': ' + error);
                     $button.prop('disabled', false).text($button.data('original-text'));
                 }
             });
         });
 
         // Store original button text
-        $('.devsoom-autodeploy button[data-original-text]').each(function () {
+        $('.devsroom-autodeploy button[data-original-text]').each(function () {
             var $button = $(this);
             if (!$button.data('original-text')) {
                 $button.data('original-text', $button.text());
@@ -161,11 +161,11 @@
 
             // Load deployment details via AJAX
             $.ajax({
-                url: devsoom_autodeploy.ajax_url,
+                url: devsroom_autodeploy.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'devsoom_autodeploy_deployment_details',
-                    nonce: devsoom_autodeploy.nonce,
+                    action: 'devsroom_autodeploy_deployment_details',
+                    nonce: devsroom_autodeploy.nonce,
                     deployment_id: deploymentId
                 },
                 success: function (response) {
@@ -174,6 +174,9 @@
                         $('#deployment-modal .modal-content').html(response.data.html);
                         $('#deployment-modal').fadeIn(200);
                     }
+                },
+                error: function (xhr, status, error) {
+                    alert(devsroom_autodeploy.strings.error + ': ' + error);
                 }
             });
         });
@@ -191,19 +194,19 @@
         });
 
         // Dismissible Recent Deployments notice
-        $('.devsoom-recent-deployments-notice').on('click', '.notice-dismiss', function (e) {
+        $('.devsroom-recent-deployments-notice').on('click', '.notice-dismiss', function (e) {
             e.preventDefault();
 
             $.ajax({
-                url: devsoom_autodeploy.ajax_url,
+                url: devsroom_autodeploy.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'devsoom_autodeploy_dismiss_recent_deployments',
-                    nonce: devsoom_autodeploy.nonce
+                    action: 'devsroom_autodeploy_dismiss_recent_deployments',
+                    nonce: devsroom_autodeploy.nonce
                 },
                 success: function (response) {
                     if (response.success) {
-                        $('.devsoom-recent-deployments-notice').fadeOut(300, function () {
+                        $('.devsroom-recent-deployments-notice').fadeOut(300, function () {
                             $(this).remove();
                         });
                     }
@@ -218,9 +221,7 @@
                     my: 'center bottom-10',
                     at: 'center top'
                 },
-                tooltipClass: 'devsoom-autodeploy-tooltip'
+                tooltipClass: 'devsroom-autodeploy-tooltip'
             });
         }
-    });
-
-})(jQuery);
+    })(jQuery);

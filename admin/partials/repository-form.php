@@ -3,7 +3,7 @@
 /**
  * Repository form template.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
 // Exit if accessed directly.
@@ -13,55 +13,55 @@ if (! defined('ABSPATH')) {
 
 ?>
 
-<div class="wrap devsoom-autodeploy">
-    <h1><?php esc_html_e('Repositories', 'devsoom-autodeploy'); ?></h1>
+<div class="wrap devsroom-autodeploy">
+    <h1><?php esc_html_e('Repositories', 'devsroom-autodeploy'); ?></h1>
 
     <?php
     // Display messages.
     if (isset($_GET['saved'])) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Repository saved successfully.', 'devsoom-autodeploy') . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Repository saved successfully.', 'devsroom-autodeploy') . '</p></div>';
     }
     if (isset($_GET['deleted'])) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Repository deleted successfully.', 'devsoom-autodeploy') . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Repository deleted successfully.', 'devsroom-autodeploy') . '</p></div>';
     }
     if (isset($_GET['deployed'])) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Deployment completed successfully.', 'devsoom-autodeploy') . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Deployment completed successfully.', 'devsroom-autodeploy') . '</p></div>';
     }
     if (isset($_GET['error'])) {
         $error_messages = array(
-            'missing_fields' => __('Please fill in all required fields.', 'devsoom-autodeploy'),
-            'invalid_token' => __('Invalid authentication token.', 'devsoom-autodeploy'),
-            'invalid_repo' => __('Repository not found or access denied.', 'devsoom-autodeploy'),
-            'webhook_failed' => __('Failed to create webhook on GitHub.', 'devsoom-autodeploy'),
-            'invalid_id' => __('Invalid repository ID.', 'devsoom-autodeploy'),
-            'not_found' => __('Repository not found.', 'devsoom-autodeploy'),
-            'invalid_plugin_slug' => __('Invalid plugin slug: Cannot use "devsoom-autodeploy" as the target plugin. Please specify a different plugin folder.', 'devsoom-autodeploy'),
-            'invalid_slug_format' => __('Invalid plugin slug format. Use only lowercase letters, numbers, and hyphens (e.g., my-plugin).', 'devsoom-autodeploy'),
+            'missing_fields' => __('Please fill in all required fields.', 'devsroom-autodeploy'),
+            'invalid_token' => __('Invalid authentication token.', 'devsroom-autodeploy'),
+            'invalid_repo' => __('Repository not found or access denied.', 'devsroom-autodeploy'),
+            'webhook_failed' => __('Failed to create webhook on GitHub.', 'devsroom-autodeploy'),
+            'invalid_id' => __('Invalid repository ID.', 'devsroom-autodeploy'),
+            'not_found' => __('Repository not found.', 'devsroom-autodeploy'),
+            'invalid_plugin_slug' => __('Invalid plugin slug: Cannot use "devsroom-autodeploy" as target plugin. Please specify a different plugin folder.', 'devsroom-autodeploy'),
+            'invalid_slug_format' => __('Invalid plugin slug format. Use only lowercase letters, numbers, and hyphens (e.g., my-plugin).', 'devsroom-autodeploy'),
         );
         $error_message = $error_messages[$_GET['error']] ?? $_GET['error'];
         echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($error_message) . '</p></div>';
     }
     ?>
 
-    <h2><?php esc_html_e('Add New Repository', 'devsoom-autodeploy'); ?></h2>
+    <h2><?php esc_html_e('Add New Repository', 'devsroom-autodeploy'); ?></h2>
 
     <form method="post" action="">
-        <?php wp_nonce_field('devsoom_autodeploy_save_repository', 'devsoom_autodeploy_nonce'); ?>
+        <?php wp_nonce_field('devsroom_autodeploy_save_repository', 'devsroom_autodeploy_nonce'); ?>
 
         <table class="form-table">
             <tr>
                 <th scope="row">
-                    <label for="plugin_slug"><?php esc_html_e('Target Plugin Slug', 'devsoom-autodeploy'); ?></label>
+                    <label for="plugin_slug"><?php esc_html_e('Target Plugin Slug', 'devsroom-autodeploy'); ?></label>
                 </th>
                 <td>
                     <input type="text" name="plugin_slug" id="plugin_slug" class="regular-text" required
                         placeholder="e.g., my-custom-plugin">
                     <p class="description">
-                        <?php esc_html_e('The WordPress plugin folder where the repository files will be deployed.', 'devsoom-autodeploy'); ?><br>
-                        <?php esc_html_e('This should match the target plugin folder name in your wp-content/plugins directory.', 'devsoom-autodeploy'); ?><br>
-                        <?php esc_html_e('Example: If deploying to wp-content/plugins/my-plugin, enter "my-plugin".', 'devsoom-autodeploy'); ?><br>
+                        <?php esc_html_e('The WordPress plugin folder where repository files will be deployed.', 'devsroom-autodeploy'); ?><br>
+                        <?php esc_html_e('This should match the target plugin folder name in your wp-content/plugins directory.', 'devsroom-autodeploy'); ?><br>
+                        <?php esc_html_e('Example: If deploying to wp-content/plugins/my-plugin, enter "my-plugin".', 'devsroom-autodeploy'); ?><br>
                         <strong style="color: #d63638;">
-                            <?php esc_html_e('Warning: Do NOT use "devsoom-autodeploy" as this will break the deployment system.', 'devsoom-autodeploy'); ?>
+                            <?php esc_html_e('Warning: Do NOT use "devsroom-autodeploy" as this will break the deployment system.', 'devsroom-autodeploy'); ?>
                         </strong>
                     </p>
                 </td>
@@ -69,47 +69,47 @@ if (! defined('ABSPATH')) {
 
             <tr>
                 <th scope="row">
-                    <label for="repo_owner"><?php esc_html_e('Repository Owner', 'devsoom-autodeploy'); ?></label>
+                    <label for="repo_owner"><?php esc_html_e('Repository Owner', 'devsroom-autodeploy'); ?></label>
                 </th>
                 <td>
                     <input type="text" name="repo_owner" id="repo_owner" class="regular-text" required>
                     <p class="description">
-                        <?php esc_html_e('The GitHub username or organization name.', 'devsoom-autodeploy'); ?>
+                        <?php esc_html_e('The GitHub username or organization name.', 'devsroom-autodeploy'); ?>
                     </p>
                 </td>
             </tr>
 
             <tr>
                 <th scope="row">
-                    <label for="repo_name"><?php esc_html_e('Repository Name', 'devsoom-autodeploy'); ?></label>
+                    <label for="repo_name"><?php esc_html_e('Repository Name', 'devsroom-autodeploy'); ?></label>
                 </th>
                 <td>
                     <input type="text" name="repo_name" id="repo_name" class="regular-text" required>
                     <p class="description">
-                        <?php esc_html_e('The GitHub repository name.', 'devsoom-autodeploy'); ?>
+                        <?php esc_html_e('The GitHub repository name.', 'devsroom-autodeploy'); ?>
                     </p>
                 </td>
             </tr>
 
             <tr>
                 <th scope="row">
-                    <label for="branch"><?php esc_html_e('Branch', 'devsoom-autodeploy'); ?></label>
+                    <label for="branch"><?php esc_html_e('Branch', 'devsroom-autodeploy'); ?></label>
                 </th>
                 <td>
                     <input type="text" name="branch" id="branch" class="regular-text" value="main" required>
                     <p class="description">
-                        <?php esc_html_e('The branch to track (default: main).', 'devsoom-autodeploy'); ?>
+                        <?php esc_html_e('The branch to track (default: main).', 'devsroom-autodeploy'); ?>
                     </p>
                 </td>
             </tr>
 
             <tr>
                 <th scope="row">
-                    <label for="auth_token_id"><?php esc_html_e('Authentication Token', 'devsoom-autodeploy'); ?></label>
+                    <label for="auth_token_id"><?php esc_html_e('Authentication Token', 'devsroom-autodeploy'); ?></label>
                 </th>
                 <td>
                     <select name="auth_token_id" id="auth_token_id" required>
-                        <option value=""><?php esc_html_e('Select a token', 'devsoom-autodeploy'); ?></option>
+                        <option value=""><?php esc_html_e('Select a token', 'devsroom-autodeploy'); ?></option>
                         <?php foreach ($tokens as $token) : ?>
                             <option value="<?php echo esc_attr($token['id']); ?>">
                                 <?php echo esc_html($token['token_name']); ?>
@@ -118,72 +118,72 @@ if (! defined('ABSPATH')) {
                         <?php endforeach; ?>
                     </select>
                     <p class="description">
-                        <?php esc_html_e('Select a GitHub authentication token.', 'devsoom-autodeploy'); ?>
-                        <a href="<?php echo esc_url(admin_url('admin.php?page=devsoom-autodeploy-settings')); ?>">
-                            <?php esc_html_e('Add a new token', 'devsoom-autodeploy'); ?>
+                        <?php esc_html_e('Select a GitHub authentication token.', 'devsroom-autodeploy'); ?>
+                        <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-settings')); ?>">
+                            <?php esc_html_e('Add a new token', 'devsroom-autodeploy'); ?>
                         </a>
                     </p>
                 </td>
             </tr>
 
             <tr>
-                <th scope="row"><?php esc_html_e('Auto Deploy', 'devsoom-autodeploy'); ?></th>
+                <th scope="row"><?php esc_html_e('Auto Deploy', 'devsroom-autodeploy'); ?></th>
                 <td>
                     <label>
                         <input type="checkbox" name="auto_deploy" value="1" checked>
-                        <?php esc_html_e('Enable automatic deployment via webhook and polling', 'devsoom-autodeploy'); ?>
+                        <?php esc_html_e('Enable automatic deployment via webhook and polling', 'devsroom-autodeploy'); ?>
                     </label>
                 </td>
             </tr>
 
             <tr>
-                <th scope="row"><?php esc_html_e('Backup', 'devsoom-autodeploy'); ?></th>
+                <th scope="row"><?php esc_html_e('Backup', 'devsroom-autodeploy'); ?></th>
                 <td>
                     <label>
                         <input type="checkbox" name="enable_backup" value="1" checked>
-                        <?php esc_html_e('Create backup before deployment', 'devsoom-autodeploy'); ?>
+                        <?php esc_html_e('Create backup before deployment', 'devsroom-autodeploy'); ?>
                     </label>
                 </td>
             </tr>
 
             <tr>
                 <th scope="row">
-                    <label for="scan_level"><?php esc_html_e('Security Scan Level', 'devsoom-autodeploy'); ?></label>
+                    <label for="scan_level"><?php esc_html_e('Security Scan Level', 'devsroom-autodeploy'); ?></label>
                 </th>
                 <td>
                     <select name="scan_level" id="scan_level">
-                        <option value="none"><?php esc_html_e('None', 'devsoom-autodeploy'); ?></option>
-                        <option value="basic" selected><?php esc_html_e('Basic', 'devsoom-autodeploy'); ?></option>
-                        <option value="advanced"><?php esc_html_e('Advanced', 'devsoom-autodeploy'); ?></option>
+                        <option value="none"><?php esc_html_e('None', 'devsroom-autodeploy'); ?></option>
+                        <option value="basic" selected><?php esc_html_e('Basic', 'devsroom-autodeploy'); ?></option>
+                        <option value="advanced"><?php esc_html_e('Advanced', 'devsroom-autodeploy'); ?></option>
                     </select>
                     <p class="description">
-                        <?php esc_html_e('Basic: Check for common PHP injection patterns. Advanced: Includes malware signatures and obfuscated code detection.', 'devsoom-autodeploy'); ?>
+                        <?php esc_html_e('Basic: Check for common PHP injection patterns. Advanced: Includes malware signatures and obfuscated code detection.', 'devsroom-autodeploy'); ?>
                     </p>
                 </td>
             </tr>
         </table>
 
         <p class="submit">
-            <input type="submit" name="devsoom_autodeploy_save_repository" class="button button-primary" value="<?php esc_attr_e('Add Repository', 'devsoom-autodeploy'); ?>">
+            <input type="submit" name="devsroom_autodeploy_save_repository" class="button button-primary" value="<?php esc_attr_e('Add Repository', 'devsroom-autodeploy'); ?>">
         </p>
     </form>
 
-    <h2><?php esc_html_e('Connected Repositories', 'devsoom-autodeploy'); ?></h2>
+    <h2><?php esc_html_e('Connected Repositories', 'devsroom-autodeploy'); ?></h2>
 
     <?php if (empty($repositories)) : ?>
-        <p><?php esc_html_e('No repositories connected yet.', 'devsoom-autodeploy'); ?></p>
+        <p><?php esc_html_e('No repositories connected yet.', 'devsroom-autodeploy'); ?></p>
     <?php else : ?>
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
-                    <th><?php esc_html_e('Plugin', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Repository', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Branch', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Auto Deploy', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Last Deployed', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Update Available', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Status', 'devsoom-autodeploy'); ?></th>
-                    <th><?php esc_html_e('Actions', 'devsoom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Plugin', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Repository', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Branch', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Auto Deploy', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Last Deployed', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Update Available', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Status', 'devsroom-autodeploy'); ?></th>
+                    <th><?php esc_html_e('Actions', 'devsroom-autodeploy'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -196,20 +196,20 @@ if (! defined('ABSPATH')) {
                             </a>
                         </td>
                         <td><?php echo esc_html($repo['branch']); ?></td>
-                        <td><?php echo $repo['auto_deploy'] ? esc_html__('Yes', 'devsoom-autodeploy') : esc_html__('No', 'devsoom-autodeploy'); ?></td>
+                        <td><?php echo $repo['auto_deploy'] ? esc_html__('Yes', 'devsroom-autodeploy') : esc_html__('No', 'devsroom-autodeploy'); ?></td>
                         <td>
                             <?php
                             if ($repo['last_deployed_at']) {
                                 echo esc_html(mysql2date(get_option('date_format') . ' ' . get_option('time_format'), $repo['last_deployed_at']));
                             } else {
-                                esc_html_e('Never', 'devsoom-autodeploy');
+                                esc_html_e('Never', 'devsroom-autodeploy');
                             }
                             ?>
                         </td>
                         <td>
                             <?php if ($repo['has_update']) : ?>
                                 <span class="update-available-badge">
-                                    <?php esc_html_e('Yes', 'devsoom-autodeploy'); ?>
+                                    <?php esc_html_e('Yes', 'devsroom-autodeploy'); ?>
                                 </span>
                                 <?php if ($repo['latest_commit_message']) : ?>
                                     <br>
@@ -219,7 +219,7 @@ if (! defined('ABSPATH')) {
                                 <?php endif; ?>
                             <?php else : ?>
                                 <span class="no-update-badge">
-                                    <?php esc_html_e('No', 'devsoom-autodeploy'); ?>
+                                    <?php esc_html_e('No', 'devsroom-autodeploy'); ?>
                                 </span>
                             <?php endif; ?>
                         </td>
@@ -230,17 +230,17 @@ if (! defined('ABSPATH')) {
                         </td>
                         <td>
                             <form method="post" action="" style="display:inline;">
-                                <?php wp_nonce_field('devsoom_autodeploy_save_repository', 'devsoom_autodeploy_nonce'); ?>
+                                <?php wp_nonce_field('devsroom_autodeploy_save_repository', 'devsroom_autodeploy_nonce'); ?>
                                 <input type="hidden" name="repository_id" value="<?php echo esc_attr($repo['id']); ?>">
-                                <button type="submit" name="devsoom_autodeploy_deploy_now" class="button button-small <?php echo $repo['has_update'] ? 'button-primary' : ''; ?>">
-                                    <?php echo $repo['has_update'] ? esc_html__('Pull Update', 'devsoom-autodeploy') : esc_html__('Deploy Now', 'devsoom-autodeploy'); ?>
+                                <button type="submit" name="devsroom_autodeploy_deploy_now" class="button button-small <?php echo $repo['has_update'] ? 'button-primary' : ''; ?>">
+                                    <?php echo $repo['has_update'] ? esc_html__('Pull Update', 'devsroom-autodeploy') : esc_html__('Deploy Now', 'devsroom-autodeploy'); ?>
                                 </button>
                             </form>
-                            <form method="post" action="" style="display:inline;" onsubmit="return confirm('<?php esc_attr_e('Are you sure you want to delete this repository?', 'devsoom-autodeploy'); ?>');">
-                                <?php wp_nonce_field('devsoom_autodeploy_save_repository', 'devsoom_autodeploy_nonce'); ?>
+                            <form method="post" action="" style="display:inline;" onsubmit="return confirm('<?php esc_attr_e('Are you sure you want to delete this repository?', 'devsroom-autodeploy'); ?>');">
+                                <?php wp_nonce_field('devsroom_autodeploy_save_repository', 'devsroom_autodeploy_nonce'); ?>
                                 <input type="hidden" name="repository_id" value="<?php echo esc_attr($repo['id']); ?>">
-                                <button type="submit" name="devsoom_autodeploy_delete_repository" class="button button-small">
-                                    <?php esc_html_e('Delete', 'devsoom-autodeploy'); ?>
+                                <button type="submit" name="devsroom_autodeploy_delete_repository" class="button button-small">
+                                    <?php esc_html_e('Delete', 'devsroom-autodeploy'); ?>
                                 </button>
                             </form>
                         </td>

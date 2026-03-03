@@ -1,24 +1,24 @@
-# Devsoom AutoDeploy
+# Devsroom AutoDeploy
 
 Automate WordPress plugin deployments from GitHub repositories to live WordPress websites.
 
 ## Description
 
-Devsoom AutoDeploy is a WordPress plugin that automates the deployment of other WordPress plugins from GitHub repositories to live WordPress websites. The plugin eliminates the manual process of zipping plugin files and uploading them to live sites.
+Devsroom AutoDeploy is a WordPress plugin that automates deployment of other WordPress plugins from GitHub repositories to live WordPress websites. The plugin eliminates the manual process of zipping plugin files and uploading them to live sites.
 
 ## Features
 
 - **GitHub Integration**
   - Connect each plugin to a GitHub repository (public or private)
   - Authenticate securely via GitHub OAuth or Personal Access Token
-  - Specify the branch to track (e.g., main, dev)
+  - Specify branch to track (e.g., main, dev)
   - Validate repository ownership before deployment
 
 - **Automatic Deployment**
-  - Detect new commits in the connected repository automatically or via GitHub webhook
+  - Detect new commits in connected repository automatically or via GitHub webhook
   - Download updated plugin files from GitHub
-  - Update/replace the existing plugin on the live WordPress site
-  - Optionally create backups of the existing plugin before updating
+  - Update/replace existing plugin on live WordPress site
+  - Optionally create backups of existing plugin before updating
 
 - **Security Measures**
   - Only admin users can connect repositories and trigger deployments
@@ -26,13 +26,17 @@ Devsoom AutoDeploy is a WordPress plugin that automates the deployment of other 
   - Log all deployments with user, date, and status
 
 - **WordPress Admin Panel**
-  - Dashboard page for Devsoom AutoDeploy settings
+  - Dashboard page for Devsroom AutoDeploy settings
   - Options to:
     - Add/remove GitHub repository for each plugin
     - Select deployment branch
     - Enable/disable automatic deployments
     - Trigger manual deployment
     - View deployment logs
+  - Configure options:
+    - Auto Deploy: Enable automatic deployment
+    - Backup: Create backup before deployment
+    - Security Scan Level: None, Basic, or Advanced
 
 - **Notifications**
   - Notify admin via email or WordPress notifications after successful deployment or on errors
@@ -46,10 +50,11 @@ Devsoom AutoDeploy is a WordPress plugin that automates the deployment of other 
 
 - WordPress 6.0 or higher
 - PHP 8.0 or higher
+- MySQL 5.6 or higher (or MariaDB equivalent)
 
 ## Installation
 
-1. Upload the `devsoom-autodeploy` folder to the `/wp-content/plugins/` directory
+1. Upload `devsroom-autodeploy` folder to `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 
 ## Usage
@@ -75,119 +80,105 @@ Devsoom AutoDeploy is a WordPress plugin that automates the deployment of other 
      - Backup: Create backup before deployment
      - Security Scan Level: None, Basic, or Advanced
 
-### Automatic Deployment
+3. **Automatic Deployment**
+   The plugin supports two automatic deployment methods:
 
-The plugin supports two automatic deployment methods:
-
-1. **Webhook Deployment** (Instant)
+   **Webhook Deployment** (Instant)
    - When you push to the connected GitHub branch, a webhook triggers deployment
    - The plugin validates the webhook signature
    - Deployment starts automatically
 
-2. **Polling Deployment** (Scheduled)
+   **Polling Deployment** (Scheduled)
    - The plugin checks for updates on a schedule (configurable: hourly, twice daily, daily)
    - If a new commit is detected, deployment is triggered
+   - Deployment starts automatically
 
-### Manual Deployment
+4. **Manual Deployment**
+   - Go to **AutoDeploy → Repositories**
+   - Find the repository you want to deploy
+   - Click "Deploy Now" button
+   - Monitor deployment progress in Deployments page
 
-1. Go to **AutoDeploy → Repositories**
-2. Find the repository you want to deploy
-3. Click the "Deploy Now" button
-4. Monitor the deployment progress in the Deployments page
+5. **Viewing Deployment History**
+   - Go to **AutoDeploy → Deployments**
+   - View all deployments with status, duration, and timestamps
+   - Click on a deployment to view detailed logs
 
-### Viewing Deployment History
+6. **Security Scanning**
+   The plugin includes configurable security scanning:
+   - **Basic Scanning**: Checks for common PHP injection patterns
+   - `eval()`, `assert()`, `create_function()`
+   - `base64_decode()`, `gzinflate()`, `str_rot13()`
+   - `system()`, `exec()`, `shell_exec()`, etc.
+   - **Advanced Scanning**: Includes malware signatures and obfuscated code detection
+   - Suspicious variable names
+   - Variable function calls
+   - Dynamic includes
 
-1. Go to **AutoDeploy → Deployments**
-2. View all deployments with status, duration, and timestamps
-3. Click on a deployment to view detailed logs
+7. **Configuration Options**
 
-### Security Scanning
+   ### General Settings
+   - **Polling Interval**: How often to check for updates (hourly, twice daily, daily)
+   - **Backup Retention**: How long to keep backups (1-365 days)
+   - **Maximum Backup Size**: Maximum size of individual backups (1-1000 MB)
+   - **Enable Notifications**: Send email notifications on deployment events
+   - **Notification Email**: Email address for notifications (default: admin email)
+   - **Default Scan Level**: Security scan level for new repositories (none, basic, advanced)
 
-The plugin includes configurable security scanning:
-
-- **Basic Scanning**: Checks for common PHP injection patterns
-  - `eval()`, `assert()`, `create_function()`
-  - `base64_decode()`, `gzinflate()`, `str_rot13()`
-  - `system()`, `exec()`, `shell_exec()`, etc.
-
-- **Advanced Scanning**: Includes malware signatures and obfuscated code detection
-  - Suspicious variable names
-  - Variable function calls
-  - Dynamic includes
-
-## Configuration Options
-
-### General Settings
-
-- **Polling Interval**: How often to check for updates (hourly, twice daily, daily)
-- **Backup Retention**: How long to keep backups (1-365 days)
-- **Maximum Backup Size**: Maximum size of individual backups (1-1000 MB)
-- **Enable Notifications**: Send email notifications on deployment events
-- **Notification Email**: Email address for notifications (default: admin email)
-- **Default Scan Level**: Security scan level for new repositories (none, basic, advanced)
-
-### GitHub OAuth Settings
-
-To use OAuth authentication:
-
-1. Create a GitHub OAuth App
-   - Go to GitHub Settings → Developer settings → OAuth Apps
-   - Create a new OAuth App
-   - Set Authorization callback URL: `https://yoursite.com/wp-admin/admin.php?page=devsoom-autodeploy-settings&oauth_callback=1`
-   - Copy Client ID and Client Secret
-
-2. Configure in Plugin
+8. **GitHub OAuth Settings**
+   To use OAuth authentication:
+   1. Create a GitHub OAuth App
+   2. Go to GitHub Settings → Developer settings → OAuth Apps
+   3. Create a new OAuth App
+   4. Set Authorization callback URL: `https://yoursite.com/wp-admin/admin.php?page=devsroom-autodeploy-settings&oauth_callback=1`
+   5. Copy Client ID and Client Secret
+   6. Configure in Plugin
    - Go to **AutoDeploy → Settings → Authentication**
    - Enter Client ID and Client Secret
    - Click "Connect with GitHub OAuth"
 
-### Personal Access Token
+9. **Personal Access Token**
+   To use a Personal Access Token:
+   1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+   2. Generate a new token with `repo` scope
+   3. Copy the token
+   4. Go to **AutoDeploy → Settings → Authentication**
+   - Add token with a descriptive name
 
-To use a Personal Access Token:
-
-1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-2. Generate a new token with `repo` scope
-3. Copy the token
-4. Go to **AutoDeploy → Settings → Authentication**
-5. Add the token with a descriptive name
-
-## Webhook Configuration
-
-When you connect a repository, the plugin automatically creates a GitHub webhook. The webhook URL format is:
+10. **Webhook Configuration**
+    When you connect a repository, the plugin automatically creates a GitHub webhook. The webhook URL format is:
 
 ```
-https://yoursite.com/wp-json/devsoom-autodeploy/v1/webhook/{SECRET}
+https://yoursite.com/wp-json/devsroom-autodeploy/v1/webhook/{SECRET}
 ```
 
 Where `{SECRET}` is a unique secret generated for each repository.
 
-## Troubleshooting
+11. **Troubleshooting**
 
 ### Deployment Failed
 
-1. Check deployment logs for error messages
-2. Verify GitHub repository access
-3. Check authentication token is valid and has required scope
-4. Ensure plugin directory is writable
-5. Check available disk space
+- Check deployment logs for error messages
+- Verify GitHub repository access
+- Check authentication token is valid and has required scope
+- Ensure plugin directory is writable
+- Check available disk space
 
 ### Webhook Not Triggering
 
-1. Verify webhook is created in GitHub repository settings
-2. Check webhook URL is accessible
-3. Review webhook delivery logs in GitHub
-4. Ensure WordPress REST API is enabled
+- Verify webhook is created in GitHub repository settings
+- Check webhook URL is accessible
+- Review webhook delivery logs in GitHub
 
 ### Security Scan Issues
 
-1. Review scan results in deployment logs
-2. Check if flagged code is legitimate
-3. Adjust scan level if needed (none, basic, advanced)
-4. Contact plugin developer if false positives occur
+- Review scan results in deployment logs
+- Check if flagged code is legitimate
+- Adjust scan level if needed (none, basic, advanced)
+- Contact plugin developer if false positives occur
 
-## Security
-
-The plugin implements several security measures:
+12. **Security**
+    The plugin implements several security measures:
 
 - Admin-only access control
 - Nonce verification for all forms
@@ -197,16 +188,15 @@ The plugin implements several security measures:
 - SQL injection prevention via prepared statements
 - File path validation to prevent directory traversal
 
-## Support
+13. **Support**
+    For support, feature requests, or bug reports, please visit:
 
-For support, feature requests, or bug reports, please visit:
+- GitHub: https://github.com/devsroom/devsroom-autodeploy
+- Website: https://devsroom.com
 
-- GitHub: https://github.com/devsoom/devsoom-autodeploy
-- Website: https://devsoom.com
+14. **Changelog**
 
-## Changelog
-
-### 1.0.0
+### 1.0
 
 - Initial release
 - GitHub OAuth and PAT authentication
@@ -217,11 +207,10 @@ For support, feature requests, or bug reports, please visit:
 - Deployment logging
 - Email and admin notifications
 - Full admin dashboard
+- Responsive design
 
-## License
+15. **License**
+    This plugin is licensed under GPL-2.0+ license.
 
-This plugin is licensed under the GPL-2.0+ license.
-
-## Credits
-
-Developed by [Devsoom](https://devsoom.com)
+16. **Credits**
+    Developed by [Devsroom](https://devsroom.com)

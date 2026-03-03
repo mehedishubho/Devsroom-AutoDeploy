@@ -1,14 +1,14 @@
-<?php
+﻿<?php
 
 /**
  * Deployment View class.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Admin;
+namespace Devsroom_AutoDeploy\Admin;
 
-use Devsoom_AutoDeploy\Core\Logger;
+use Devsroom_AutoDeploy\Core\Logger;
 
 /**
  * Class Deployment_View
@@ -50,7 +50,7 @@ class Deployment_View
         $deployment = $this->get_deployment($deployment_id);
 
         if (! $deployment) {
-            echo '<div class="notice notice-error"><p>' . esc_html__('Deployment not found.', 'devsoom-autodeploy') . '</p></div>';
+            echo '<div class="notice notice-error"><p>' . esc_html__('Deployment not found.', 'devsroom-autodeploy') . '</p></div>';
             return;
         }
 
@@ -58,7 +58,7 @@ class Deployment_View
         $logger = Logger::get_instance();
         $logs = $logger->get_deployment_logs($deployment_id);
 
-        include DEVSOMM_AUTODEPLOY_PATH . 'admin/partials/deployment-single.php';
+        include DEVSROOM_AUTODEPLOY_PATH . 'admin/partials/deployment-single.php';
     }
 
     /**
@@ -80,7 +80,7 @@ class Deployment_View
         // Get total count for pagination.
         $total = $this->get_deployments_count($status);
 
-        include DEVSOMM_AUTODEPLOY_PATH . 'admin/partials/deployment-list.php';
+        include DEVSROOM_AUTODEPLOY_PATH . 'admin/partials/deployment-list.php';
     }
 
     /**
@@ -93,8 +93,8 @@ class Deployment_View
     {
         global $wpdb;
 
-        $deployments_table = $wpdb->prefix . 'devsoom_deployments';
-        $repositories_table = $wpdb->prefix . 'devsoom_repositories';
+        $deployments_table = $wpdb->prefix . 'devsroom_deployments';
+        $repositories_table = $wpdb->prefix . 'devsroom_repositories';
 
         $deployment = $wpdb->get_row(
             $wpdb->prepare(
@@ -122,8 +122,8 @@ class Deployment_View
     {
         global $wpdb;
 
-        $deployments_table = $wpdb->prefix . 'devsoom_deployments';
-        $repositories_table = $wpdb->prefix . 'devsoom_repositories';
+        $deployments_table = $wpdb->prefix . 'devsroom_deployments';
+        $repositories_table = $wpdb->prefix . 'devsroom_repositories';
 
         $where = '';
         if (! empty($status)) {
@@ -153,8 +153,8 @@ class Deployment_View
     {
         global $wpdb;
 
-        $deployments_table = $wpdb->prefix . 'devsoom_deployments';
-        $repositories_table = $wpdb->prefix . 'devsoom_repositories';
+        $deployments_table = $wpdb->prefix . 'devsroom_deployments';
+        $repositories_table = $wpdb->prefix . 'devsroom_repositories';
 
         $where = '';
         if (! empty($status)) {
