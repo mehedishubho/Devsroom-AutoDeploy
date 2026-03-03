@@ -1,12 +1,12 @@
-<?php
+﻿<?php
 
 /**
  * Dashboard class.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Admin;
+namespace Devsroom_AutoDeploy\Admin;
 
 /**
  * Class Dashboard
@@ -26,7 +26,7 @@ class Dashboard
     public function __construct()
     {
         // Register AJAX handler for dismissing recent deployments.
-        add_action('wp_ajax_devsoom_autodeploy_dismiss_recent_deployments', array($this, 'ajax_dismiss_recent_deployments'));
+        add_action('wp_ajax_devsroom_autodeploy_dismiss_recent_deployments', array($this, 'ajax_dismiss_recent_deployments'));
     }
 
     /**
@@ -36,13 +36,13 @@ class Dashboard
      */
     public function ajax_dismiss_recent_deployments(): void
     {
-        check_ajax_referer('devsoom_autodeploy_nonce', 'nonce');
+        check_ajax_referer('devsroom_autodeploy_nonce', 'nonce');
 
         if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('Permission denied.', 'devsoom-autodeploy')));
+            wp_send_json_error(array('message' => __('Permission denied.', 'devsroom-autodeploy')));
         }
 
-        update_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments', true);
+        update_user_meta(get_current_user_id(), 'devsroom_hide_recent_deployments', true);
 
         wp_send_json_success();
     }
@@ -55,27 +55,27 @@ class Dashboard
     public function render(): void
     {
         // Handle dismissible notice.
-        if (isset($_GET['devsoom_dismiss_recent_deployments'])) {
+        if (isset($_GET['devsroom_dismiss_recent_deployments'])) {
             if (! current_user_can('manage_options')) {
-                wp_die(__('Permission denied', 'devsoom-autodeploy'));
+                wp_die(__('Permission denied', 'devsroom-autodeploy'));
             }
-            update_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments', true);
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-dashboard'));
+            update_user_meta(get_current_user_id(), 'devsroom_hide_recent_deployments', true);
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-dashboard'));
             exit;
         }
 
         // Handle restore recent deployments.
-        if (isset($_GET['devsoom_restore_recent_deployments'])) {
+        if (isset($_GET['devsroom_restore_recent_deployments'])) {
             if (! current_user_can('manage_options')) {
-                wp_die(__('Permission denied', 'devsoom-autodeploy'));
+                wp_die(__('Permission denied', 'devsroom-autodeploy'));
             }
-            delete_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments');
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-dashboard'));
+            delete_user_meta(get_current_user_id(), 'devsroom_hide_recent_deployments');
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-dashboard'));
             exit;
         }
 
         // Check if recent deployments should be hidden.
-        $hide_recent_deployments = get_user_meta(get_current_user_id(), 'devsoom_hide_recent_deployments', true);
+        $hide_recent_deployments = get_user_meta(get_current_user_id(), 'devsroom_hide_recent_deployments', true);
 
         // Get statistics.
         $stats = $this->get_statistics();
@@ -90,7 +90,7 @@ class Dashboard
         // Get updates count.
         $updates_count = $repository_manager->get_updates_count();
 
-        include DEVSOMM_AUTODEPLOY_PATH . 'admin/partials/dashboard.php';
+        include DEVSROOM_AUTODEPLOY_PATH . 'admin/partials/dashboard.php';
     }
 
     /**
@@ -102,8 +102,8 @@ class Dashboard
     {
         global $wpdb;
 
-        $repositories_table = $wpdb->prefix . 'devsoom_repositories';
-        $deployments_table = $wpdb->prefix . 'devsoom_deployments';
+        $repositories_table = $wpdb->prefix . 'devsroom_repositories';
+        $deployments_table = $wpdb->prefix . 'devsroom_deployments';
 
         // Total repositories.
         $total_repositories = (int) $wpdb->get_var("SELECT COUNT(*) FROM $repositories_table");
@@ -145,8 +145,8 @@ class Dashboard
     {
         global $wpdb;
 
-        $deployments_table = $wpdb->prefix . 'devsoom_deployments';
-        $repositories_table = $wpdb->prefix . 'devsoom_repositories';
+        $deployments_table = $wpdb->prefix . 'devsroom_deployments';
+        $repositories_table = $wpdb->prefix . 'devsroom_repositories';
 
         $deployments = $wpdb->get_results(
             $wpdb->prepare(

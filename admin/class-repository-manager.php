@@ -3,14 +3,14 @@
 /**
  * Repository Manager class.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy\Admin;
+namespace Devsroom_AutoDeploy\Admin;
 
-use Devsoom_AutoDeploy\Core\Auth_Manager;
-use Devsoom_AutoDeploy\Core\Deployment_Manager;
-use Devsoom_AutoDeploy\Core\GitHub_API;
+use Devsroom_AutoDeploy\Core\Auth_Manager;
+use Devsroom_AutoDeploy\Core\Deployment_Manager;
+use Devsroom_AutoDeploy\Core\GitHub_API;
 
 /**
  * Class Repository_Manager
@@ -39,7 +39,7 @@ class Repository_Manager
         $auth_manager = Auth_Manager::get_instance();
         $tokens = $auth_manager->get_user_tokens(get_current_user_id());
 
-        include DEVSOMM_AUTODEPLOY_PATH . 'admin/partials/repository-form.php';
+        include DEVSROOM_AUTODEPLOY_PATH . 'admin/partials/repository-form.php';
     }
 
     /**
@@ -50,7 +50,7 @@ class Repository_Manager
     private function handle_form_submissions(): void
     {
         // Check nonce.
-        if (! isset($_POST['devsoom_autodeploy_nonce']) || ! wp_verify_nonce($_POST['devsoom_autodeploy_nonce'], 'devsoom_autodeploy_save_repository')) {
+        if (! isset($_POST['devsroom_autodeploy_nonce']) || ! wp_verify_nonce($_POST['devsroom_autodeploy_nonce'], 'devsroom_autodeploy_save_repository')) {
             return;
         }
 
@@ -60,17 +60,17 @@ class Repository_Manager
         }
 
         // Handle add/edit repository.
-        if (isset($_POST['devsoom_autodeploy_save_repository'])) {
+        if (isset($_POST['devsroom_autodeploy_save_repository'])) {
             $this->save_repository();
         }
 
         // Handle delete repository.
-        if (isset($_POST['devsoom_autodeploy_delete_repository'])) {
+        if (isset($_POST['devsroom_autodeploy_delete_repository'])) {
             $this->delete_repository();
         }
 
         // Handle manual deployment.
-        if (isset($_POST['devsoom_autodeploy_deploy_now'])) {
+        if (isset($_POST['devsroom_autodeploy_deploy_now'])) {
             $this->trigger_deployment();
         }
     }
@@ -93,19 +93,19 @@ class Repository_Manager
 
         // Validate required fields.
         if (empty($plugin_slug) || empty($repo_owner) || empty($repo_name)) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=missing_fields'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=missing_fields'));
             exit;
         }
 
         // Validate plugin_slug is not the AutoDeploy plugin itself.
-        if ($plugin_slug === DEVSOMM_AUTODEPLOY_PLUGIN_SLUG) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=invalid_plugin_slug'));
+        if ($plugin_slug === DEVSROOM_AUTODEPLOY_PLUGIN_SLUG) {
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=invalid_plugin_slug'));
             exit;
         }
 
         // Validate plugin_slug format (only lowercase letters, numbers, and hyphens).
         if (! preg_match('/^[a-z0-9-]+$/', $plugin_slug)) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=invalid_slug_format'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=invalid_slug_format'));
             exit;
         }
 
@@ -114,7 +114,7 @@ class Repository_Manager
         $token_data   = $auth_manager->get_token($auth_token_id);
 
         if (! $token_data) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=invalid_token'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=invalid_token'));
             exit;
         }
 
@@ -123,7 +123,7 @@ class Repository_Manager
         $repository = $github_api->get_repository($repo_owner, $repo_name);
 
         if (! $repository) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=invalid_repo'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=invalid_repo'));
             exit;
         }
 
@@ -131,17 +131,17 @@ class Repository_Manager
         $webhook_secret = wp_generate_password(32, false, false);
 
         // Create webhook.
-        $webhook_url = rest_url('devsoom-autodeploy/v1/webhook/' . $webhook_secret);
+        $webhook_url = rest_url('devsroom-autodeploy/v1/webhook/' . $webhook_secret);
         $webhook = $github_api->create_webhook($repo_owner, $repo_name, $webhook_url, $webhook_secret);
 
         if (! $webhook) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=webhook_failed'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=webhook_failed'));
             exit;
         }
 
         // Save to database.
         global $wpdb;
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         $repository_id = (int) ($_POST['repository_id'] ?? 0);
 
@@ -184,7 +184,7 @@ class Repository_Manager
             );
         }
 
-        wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&saved=true'));
+        wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&saved=true'));
         exit;
     }
 
@@ -198,7 +198,7 @@ class Repository_Manager
         $repository_id = (int) ($_POST['repository_id'] ?? 0);
 
         if ($repository_id <= 0) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=invalid_id'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=invalid_id'));
             exit;
         }
 
@@ -206,7 +206,7 @@ class Repository_Manager
         $repository = $this->get_repository($repository_id);
 
         if (! $repository) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=not_found'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=not_found'));
             exit;
         }
 
@@ -233,7 +233,7 @@ class Repository_Manager
 
         // Delete from database.
         global $wpdb;
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         $wpdb->delete(
             $table_name,
@@ -241,7 +241,7 @@ class Repository_Manager
             array('%d')
         );
 
-        wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&deleted=true'));
+        wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&deleted=true'));
         exit;
     }
 
@@ -255,7 +255,7 @@ class Repository_Manager
         $repository_id = (int) ($_POST['repository_id'] ?? 0);
 
         if ($repository_id <= 0) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=invalid_id'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=invalid_id'));
             exit;
         }
 
@@ -263,10 +263,10 @@ class Repository_Manager
         $result = $deployment_manager->deploy($repository_id, 'manual', get_current_user_id());
 
         if ($result['success']) {
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&deployed=true'));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&deployed=true'));
         } else {
             $safe_message = sanitize_text_field($result['message']);
-            wp_redirect(admin_url('admin.php?page=devsoom-autodeploy-repositories&error=' . urlencode($safe_message)));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=' . urlencode($safe_message)));
         }
         exit;
     }
@@ -280,7 +280,7 @@ class Repository_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         $repositories = $wpdb->get_results(
             "SELECT * FROM $table_name ORDER BY created_at DESC",
@@ -300,7 +300,7 @@ class Repository_Manager
     {
         global $wpdb;
 
-        $table_name = $wpdb->prefix . 'devsoom_repositories';
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
 
         $repository = $wpdb->get_row(
             $wpdb->prepare(
