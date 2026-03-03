@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Autoloader for Devsoom AutoDeploy plugin.
+ * Autoloader for Devsroom AutoDeploy plugin.
  *
- * @package Devsoom_AutoDeploy
+ * @package Devsroom_AutoDeploy
  */
 
-namespace Devsoom_AutoDeploy;
+namespace Devsroom_AutoDeploy;
 
 /**
  * Class Loader
@@ -86,7 +86,7 @@ class Loader
         $class = str_replace('_', '-', $class);
 
         // Build file path.
-        $file = DEVSOMM_AUTODEPLOY_PATH . $class . '.php';
+        $file = DEVSROOM_AUTODEPLOY_PATH . $class . '.php';
 
         // Include file if it exists.
         if (file_exists($file)) {
