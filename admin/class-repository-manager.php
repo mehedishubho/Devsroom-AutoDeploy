@@ -73,6 +73,11 @@ class Repository_Manager
         if (isset($_POST['devsroom_autodeploy_deploy_now'])) {
             $this->trigger_deployment();
         }
+
+        // Handle manual deployment + activation.
+        if (isset($_POST['devsroom_autodeploy_deploy_activate'])) {
+            $this->trigger_deployment(true);
+        }
     }
 
     /**
@@ -269,9 +274,10 @@ class Repository_Manager
     /**
      * Trigger manual deployment.
      *
+     * @param bool $activate_after Whether to activate the plugin after deployment.
      * @return void
      */
-    private function trigger_deployment(): void
+    private function trigger_deployment(bool $activate_after = false): void
     {
         $repository_id = (int) ($_POST['repository_id'] ?? 0);
 
@@ -280,16 +286,107 @@ class Repository_Manager
             exit;
         }
 
+        $repository = $this->get_repository($repository_id);
+
+        if (! $repository) {
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=not_found'));
+            exit;
+        }
+
         $deployment_manager = Deployment_Manager::get_instance();
-        $result = $deployment_manager->deploy($repository_id, 'manual', get_current_user_id());
+        $result = $deployment_manager->deploy($repository_id, 'manual', get_current_user_id(), true);
 
         if ($result['success']) {
+            if ($activate_after) {
+                $activation_result = $this->activate_plugin_by_slug($repository['plugin_slug']);
+
+                if ($activation_result['success']) {
+                    wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&deployed_activated=true'));
+                } else {
+                    wp_redirect(
+                        admin_url(
+                            'admin.php?page=devsroom-autodeploy-repositories&error=activation_failed&activation_message=' .
+                                rawurlencode($activation_result['message'])
+                        )
+                    );
+                }
+                exit;
+            }
+
             wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&deployed=true'));
         } else {
             $safe_message = sanitize_text_field($result['message']);
             wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=' . urlencode($safe_message)));
         }
         exit;
+    }
+
+    /**
+     * Activate plugin by slug.
+     *
+     * @param string $plugin_slug Plugin directory slug.
+     * @return array Activation result.
+     */
+    private function activate_plugin_by_slug(string $plugin_slug): array
+    {
+        if (! function_exists('get_plugins') || ! function_exists('is_plugin_active') || ! function_exists('activate_plugin')) {
+            require_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+
+        $plugins = get_plugins('/' . $plugin_slug);
+
+        if (empty($plugins)) {
+            return array(
+                'success' => false,
+                'message' => 'No valid plugin files were found for activation.',
+            );
+        }
+
+        $preferred_file = $plugin_slug . '.php';
+        $plugin_relative_file = '';
+
+        if (isset($plugins[$preferred_file])) {
+            $plugin_relative_file = $preferred_file;
+        } else {
+            $plugin_files = array_keys($plugins);
+
+            // Pick a deterministic fallback main file when slug.php is unavailable.
+            usort($plugin_files, static function (string $a, string $b): int {
+                $length_compare = strlen($a) <=> strlen($b);
+
+                if (0 !== $length_compare) {
+                    return $length_compare;
+                }
+
+                return strcmp($a, $b);
+            });
+
+            $plugin_relative_file = $plugin_files[0];
+        }
+
+        $plugin_file = $plugin_slug . '/' . $plugin_relative_file;
+
+        $is_network_active = function_exists('is_plugin_active_for_network') && is_plugin_active_for_network($plugin_file);
+        if (is_plugin_active($plugin_file) || $is_network_active) {
+            return array(
+                'success' => true,
+                'message' => 'Plugin is already active.',
+            );
+        }
+
+        $activation_result = activate_plugin($plugin_file);
+
+        if (is_wp_error($activation_result)) {
+            return array(
+                'success' => false,
+                'message' => $activation_result->get_error_message(),
+            );
+        }
+
+        return array(
+            'success' => true,
+            'message' => 'Plugin activated successfully.',
+        );
     }
 
     /**

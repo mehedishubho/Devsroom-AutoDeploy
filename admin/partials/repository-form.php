@@ -27,6 +27,9 @@ if (! defined('ABSPATH')) {
     if (isset($_GET['deployed'])) {
         echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Deployment completed successfully.', 'devsroom-autodeploy') . '</p></div>';
     }
+    if (isset($_GET['deployed_activated'])) {
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Deployment and activation completed successfully.', 'devsroom-autodeploy') . '</p></div>';
+    }
     if (isset($_GET['error'])) {
         $error_messages = array(
             'missing_fields' => __('Please fill in all required fields.', 'devsroom-autodeploy'),
@@ -38,8 +41,22 @@ if (! defined('ABSPATH')) {
             'db_error' => __('Database error while saving repository. Please try again.', 'devsroom-autodeploy'),
             'invalid_plugin_slug' => __('Invalid plugin slug: Cannot use "devsroom-autodeploy" as target plugin. Please specify a different plugin folder.', 'devsroom-autodeploy'),
             'invalid_slug_format' => __('Invalid plugin slug format. Use only lowercase letters, numbers, and hyphens (e.g., my-plugin).', 'devsroom-autodeploy'),
+            'activation_failed' => __('Deployment succeeded, but plugin activation failed.', 'devsroom-autodeploy'),
         );
-        $error_message = $error_messages[$_GET['error']] ?? $_GET['error'];
+        $error_key = sanitize_key(wp_unslash($_GET['error']));
+        $error_message = $error_messages[$error_key] ?? sanitize_text_field(wp_unslash($_GET['error']));
+
+        if ('activation_failed' === $error_key && isset($_GET['activation_message'])) {
+            $activation_message = sanitize_text_field(wp_unslash($_GET['activation_message']));
+            if ('' !== $activation_message) {
+                $error_message .= ' ' . sprintf(
+                    /* translators: %s Activation failure details. */
+                    __('Details: %s', 'devsroom-autodeploy'),
+                    $activation_message
+                );
+            }
+        }
+
         echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($error_message) . '</p></div>';
     }
     ?>
@@ -240,6 +257,13 @@ if (! defined('ABSPATH')) {
                                             <input type="hidden" name="repository_id" value="<?php echo esc_attr($repo['id']); ?>">
                                             <button type="submit" name="devsroom_autodeploy_deploy_now" class="button button-small <?php echo $repo['has_update'] ? 'button-primary' : ''; ?>">
                                                 <?php echo $repo['has_update'] ? esc_html__('Pull Update', 'devsroom-autodeploy') : esc_html__('Deploy Now', 'devsroom-autodeploy'); ?>
+                                            </button>
+                                        </form>
+                                        <form class="devsroom-inline-form" method="post" action="">
+                                            <?php wp_nonce_field('devsroom_autodeploy_save_repository', 'devsroom_autodeploy_nonce'); ?>
+                                            <input type="hidden" name="repository_id" value="<?php echo esc_attr($repo['id']); ?>">
+                                            <button type="submit" name="devsroom_autodeploy_deploy_activate" class="button button-small">
+                                                <?php esc_html_e('Deploy + Activate', 'devsroom-autodeploy'); ?>
                                             </button>
                                         </form>
                                         <form class="devsroom-inline-form" method="post" action="" onsubmit="return confirm('<?php esc_attr_e('Are you sure you want to delete this repository?', 'devsroom-autodeploy'); ?>');">

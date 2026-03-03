@@ -81,11 +81,12 @@ class Deployment_Manager
      * Deploy a plugin from GitHub.
      *
      * @param int    $repository_id Repository ID.
-     * @param string $trigger_type  Trigger type (webhook, polling, manual).
+     * @param string $trigger_type Trigger type (webhook, polling, manual).
      * @param int    $user_id      User ID triggering the deployment.
+     * @param bool   $force        Whether to force deployment when commit is unchanged.
      * @return array Deployment result.
      */
-    public function deploy(int $repository_id, string $trigger_type = 'manual', int $user_id = 0): array
+    public function deploy(int $repository_id, string $trigger_type = 'manual', int $user_id = 0, bool $force = false): array
     {
         // Get repository configuration.
         $repository = $this->get_repository($repository_id);
@@ -136,7 +137,7 @@ class Deployment_Manager
         $commit_hash = $commit['sha'];
 
         // Check if already deployed.
-        if ($commit_hash === $repository['last_commit_hash']) {
+        if (! $force && $commit_hash === $repository['last_commit_hash']) {
             return array(
                 'success' => true,
                 'message' => 'Already up to date.',

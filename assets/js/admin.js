@@ -19,7 +19,7 @@
         });
 
         // Confirm deploy actions
-        $('.devsroom-autodeploy').on('click', '[name="devsroom_autodeploy_deploy_now"]', function (e) {
+        $('.devsroom-autodeploy').on('click', '[name="devsroom_autodeploy_deploy_now"], [name="devsroom_autodeploy_deploy_activate"]', function (e) {
             if (!confirm(devsroom_autodeploy.strings.confirm_deploy)) {
                 e.preventDefault();
                 return false;
