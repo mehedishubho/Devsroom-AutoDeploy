@@ -66,7 +66,6 @@ class Admin
 
         // Main menu.
         add_menu_page(
-            'devsroom-autodeploy',
             __('Devsroom AutoDeploy', 'devsroom-autodeploy'),
             __('AutoDeploy', 'devsroom-autodeploy'),
             'manage_options',

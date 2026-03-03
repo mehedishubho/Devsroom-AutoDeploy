@@ -14,7 +14,7 @@ if (! defined('ABSPATH')) {
 ?>
 
 <div class="wrap devsroom-autodeploy">
-    <h1><?php esc_html_e('Devsroom AutoDeploy Settings', 'devsroom-autodeploy'); ?></h1>
+    <h1 class="devsroom-page-head"><?php esc_html_e('Devsroom AutoDeploy Settings', 'devsroom-autodeploy'); ?></h1>
 
     <?php
     // Display messages.
@@ -50,8 +50,8 @@ if (! defined('ABSPATH')) {
     </h2>
 
     <!-- General Settings Tab -->
-    <div id="general" class="tab-content active">
-        <form method="post" action="">
+    <div id="general" class="tab-content active devsroom-section devsroom-panel">
+        <form class="devsroom-form" method="post" action="">
             <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
 
             <h3><?php esc_html_e('Deployment Settings', 'devsroom-autodeploy'); ?></h3>
@@ -151,107 +151,115 @@ if (! defined('ABSPATH')) {
     </div>
 
     <!-- Authentication Tab -->
-    <div id="authentication" class="tab-content">
-        <h3><?php esc_html_e('GitHub OAuth Settings', 'devsroom-autodeploy'); ?></h3>
-        <form method="post" action="">
-            <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
+    <div id="authentication" class="tab-content devsroom-section devsroom-panel">
+        <div class="devsroom-section">
+            <h3><?php esc_html_e('GitHub OAuth Settings', 'devsroom-autodeploy'); ?></h3>
+            <form class="devsroom-form" method="post" action="">
+                <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
 
-            <table class="form-table">
-                <tr>
-                    <th scope="row">
-                        <label for="github_client_id"><?php esc_html_e('GitHub Client ID', 'devsroom-autodeploy'); ?></label>
-                    </th>
-                    <td>
-                        <input type="text" name="github_client_id" id="github_client_id" class="regular-text" value="<?php echo esc_attr($settings['github_client_id']); ?>">
-                        <p class="description">
-                            <?php esc_html_e('GitHub OAuth App Client ID.', 'devsroom-autodeploy'); ?>
-                        </p>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row">
-                        <label for="github_client_secret"><?php esc_html_e('GitHub Client Secret', 'devsroom-autodeploy'); ?></label>
-                    </th>
-                    <td>
-                        <input type="password" name="github_client_secret" id="github_client_secret" class="regular-text" value="<?php echo esc_attr($settings['github_client_secret']); ?>">
-                        <p class="description">
-                            <?php esc_html_e('GitHub OAuth App Client Secret.', 'devsroom-autodeploy'); ?>
-                        </p>
-                    </td>
-                </tr>
-            </table>
-
-            <p class="submit">
-                <input type="submit" name="devsroom_autodeploy_save_settings" class="button button-primary" value="<?php esc_attr_e('Save OAuth Settings', 'devsroom-autodeploy'); ?>">
-            </p>
-        </form>
-
-        <?php if (! empty($settings['github_client_id']) && ! empty($settings['github_client_secret'])) : ?>
-            <p>
-                <a href="<?php echo esc_url($this->get_oauth_url()); ?>" class="button button-secondary">
-                    <?php esc_html_e('Connect with GitHub OAuth', 'devsroom-autodeploy'); ?>
-                </a>
-            </p>
-        <?php endif; ?>
-
-        <h3><?php esc_html_e('Personal Access Tokens', 'devsroom-autodeploy'); ?></h3>
-        <form method="post" action="">
-            <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
-
-            <table class="form-table">
-                <tr>
-                    <th scope="row">
-                        <label for="pat_token"><?php esc_html_e('Add New Token', 'devsroom-autodeploy'); ?></label>
-                    </th>
-                    <td>
-                        <input type="password" name="pat_token" id="pat_token" class="regular-text" placeholder="<?php esc_attr_e('ghp_xxxxxxxxxxxxxxxxxxxx', 'devsroom-autodeploy'); ?>">
-                        <input type="text" name="pat_token_name" id="pat_token_name" class="regular-text" placeholder="<?php esc_attr_e('Token name (optional)', 'devsroom-autodeploy'); ?>">
-                        <p class="description">
-                            <?php esc_html_e('Create a Personal Access Token in GitHub with repo scope.', 'devsroom-autodeploy'); ?>
-                        </p>
-                    </td>
-                </tr>
-            </table>
-
-            <p class="submit">
-                <input type="submit" name="devsroom_autodeploy_add_pat" class="button button-secondary" value="<?php esc_attr_e('Add Token', 'devsroom-autodeploy'); ?>">
-            </p>
-        </form>
-
-        <h3><?php esc_html_e('Your Tokens', 'devsroom-autodeploy'); ?></h3>
-
-        <?php if (empty($tokens)) : ?>
-            <p><?php esc_html_e('No tokens added yet.', 'devsroom-autodeploy'); ?></p>
-        <?php else : ?>
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
+                <table class="form-table">
                     <tr>
-                        <th><?php esc_html_e('Name', 'devsroom-autodeploy'); ?></th>
-                        <th><?php esc_html_e('Type', 'devsroom-autodeploy'); ?></th>
-                        <th><?php esc_html_e('Created', 'devsroom-autodeploy'); ?></th>
-                        <th><?php esc_html_e('Actions', 'devsroom-autodeploy'); ?></th>
+                        <th scope="row">
+                            <label for="github_client_id"><?php esc_html_e('GitHub Client ID', 'devsroom-autodeploy'); ?></label>
+                        </th>
+                        <td>
+                            <input type="text" name="github_client_id" id="github_client_id" class="regular-text" value="<?php echo esc_attr($settings['github_client_id']); ?>">
+                            <p class="description">
+                                <?php esc_html_e('GitHub OAuth App Client ID.', 'devsroom-autodeploy'); ?>
+                            </p>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($tokens as $token) : ?>
-                        <tr>
-                            <td><?php echo esc_html($token['token_name']); ?></td>
-                            <td><?php echo esc_html(ucfirst($token['auth_method'])); ?></td>
-                            <td><?php echo esc_html(mysql2date(get_option('date_format'), $token['created_at'])); ?></td>
-                            <td>
-                                <form method="post" action="" onsubmit="return confirm('<?php esc_attr_e('Are you sure you want to delete this token?', 'devsroom-autodeploy'); ?>');">
-                                    <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
-                                    <input type="hidden" name="token_id" value="<?php echo esc_attr($token['id']); ?>">
-                                    <button type="submit" name="devsroom_autodeploy_delete_token" class="button button-small">
-                                        <?php esc_html_e('Delete', 'devsroom-autodeploy'); ?>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+                    <tr>
+                        <th scope="row">
+                            <label for="github_client_secret"><?php esc_html_e('GitHub Client Secret', 'devsroom-autodeploy'); ?></label>
+                        </th>
+                        <td>
+                            <input type="password" name="github_client_secret" id="github_client_secret" class="regular-text" value="<?php echo esc_attr($settings['github_client_secret']); ?>">
+                            <p class="description">
+                                <?php esc_html_e('GitHub OAuth App Client Secret.', 'devsroom-autodeploy'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <p class="submit">
+                    <input type="submit" name="devsroom_autodeploy_save_settings" class="button button-primary" value="<?php esc_attr_e('Save OAuth Settings', 'devsroom-autodeploy'); ?>">
+                </p>
+            </form>
+
+            <?php if (! empty($settings['github_client_id']) && ! empty($settings['github_client_secret'])) : ?>
+                <p>
+                    <a href="<?php echo esc_url($this->get_oauth_url()); ?>" class="button button-secondary">
+                        <?php esc_html_e('Connect with GitHub OAuth', 'devsroom-autodeploy'); ?>
+                    </a>
+                </p>
+            <?php endif; ?>
+        </div>
+
+        <div class="devsroom-section">
+            <h3><?php esc_html_e('Personal Access Tokens', 'devsroom-autodeploy'); ?></h3>
+            <form class="devsroom-form" method="post" action="">
+                <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
+
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="pat_token"><?php esc_html_e('Add New Token', 'devsroom-autodeploy'); ?></label>
+                        </th>
+                        <td>
+                            <input type="password" name="pat_token" id="pat_token" class="regular-text" placeholder="<?php esc_attr_e('ghp_xxxxxxxxxxxxxxxxxxxx', 'devsroom-autodeploy'); ?>">
+                            <input type="text" name="pat_token_name" id="pat_token_name" class="regular-text" placeholder="<?php esc_attr_e('Token name (optional)', 'devsroom-autodeploy'); ?>">
+                            <p class="description">
+                                <?php esc_html_e('Create a Personal Access Token in GitHub with repo scope.', 'devsroom-autodeploy'); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <p class="submit">
+                    <input type="submit" name="devsroom_autodeploy_add_pat" class="button button-secondary" value="<?php esc_attr_e('Add Token', 'devsroom-autodeploy'); ?>">
+                </p>
+            </form>
+        </div>
+
+        <div class="devsroom-section">
+            <h3><?php esc_html_e('Your Tokens', 'devsroom-autodeploy'); ?></h3>
+
+            <?php if (empty($tokens)) : ?>
+                <p><?php esc_html_e('No tokens added yet.', 'devsroom-autodeploy'); ?></p>
+            <?php else : ?>
+                <div class="devsroom-table-wrap">
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th><?php esc_html_e('Name', 'devsroom-autodeploy'); ?></th>
+                                <th><?php esc_html_e('Type', 'devsroom-autodeploy'); ?></th>
+                                <th><?php esc_html_e('Created', 'devsroom-autodeploy'); ?></th>
+                                <th><?php esc_html_e('Actions', 'devsroom-autodeploy'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($tokens as $token) : ?>
+                                <tr>
+                                    <td><?php echo esc_html($token['token_name']); ?></td>
+                                    <td><?php echo esc_html(ucfirst($token['auth_method'])); ?></td>
+                                    <td><?php echo esc_html(mysql2date(get_option('date_format'), $token['created_at'])); ?></td>
+                                    <td>
+                                        <form class="devsroom-inline-form" method="post" action="" onsubmit="return confirm('<?php esc_attr_e('Are you sure you want to delete this token?', 'devsroom-autodeploy'); ?>');">
+                                            <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
+                                            <input type="hidden" name="token_id" value="<?php echo esc_attr($token['id']); ?>">
+                                            <button type="submit" name="devsroom_autodeploy_delete_token" class="button button-small">
+                                                <?php esc_html_e('Delete', 'devsroom-autodeploy'); ?>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
