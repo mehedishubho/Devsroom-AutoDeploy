@@ -167,7 +167,16 @@ class Deployment_Manager
             'commit_hash'  => $commit_hash,
         ));
 
-        // Acquire deployment lock to prevent concurrent deploys to the same plugin.
+        // Initialize tracking variables for error recovery (used by try/finally and shutdown handler).
+        $temp_dir      = null;
+        $lock_acquired = false;
+        $old_path      = null;
+
+        // Register shutdown handler for crash recovery (handles PHP fatal errors and timeouts).
+        $this->register_shutdown_handler($deployment_id, $temp_dir);
+
+        try {
+            // Acquire deployment lock to prevent concurrent deploys to the same plugin.
         $lock_result = $this->acquire_lock($repository_id, $deployment_id);
 
         if (! $lock_result || ! $lock_result['success']) {
@@ -184,6 +193,9 @@ class Deployment_Manager
                 'deployment_id' => $deployment_id,
             );
         }
+
+        // Lock acquired successfully — track for cleanup in finally block.
+        $lock_acquired = true;
 
         // Get plugin path.
         $plugin_path = WP_PLUGIN_DIR . '/' . $repository['plugin_slug'];
@@ -254,10 +266,6 @@ class Deployment_Manager
                 'error_message' => 'Failed to download repository archive',
             ));
 
-            // Cleanup.
-            $this->cleanup_temp_dir($temp_dir);
-            $this->release_lock($repository_id);
-
             return array(
                 'success' => false,
                 'message' => 'Failed to download repository archive.',
@@ -272,8 +280,6 @@ class Deployment_Manager
         if ($zip->open($archive_path) !== true) {
             $this->logger->error($deployment_id, 'Failed to open archive');
             $this->update_deployment_status($deployment_id, 'failed', 'Failed to open archive');
-            $this->cleanup_temp_dir($temp_dir);
-            $this->release_lock($repository_id);
 
             return array(
                 'success' => false,
@@ -291,8 +297,6 @@ class Deployment_Manager
         if (! $extracted_dir) {
             $this->logger->error($deployment_id, 'Failed to find extracted directory');
             $this->update_deployment_status($deployment_id, 'failed', 'Failed to find extracted directory');
-            $this->cleanup_temp_dir($temp_dir);
-            $this->release_lock($repository_id);
 
             return array(
                 'success' => false,
@@ -342,8 +346,6 @@ class Deployment_Manager
             if (! @rename($plugin_path, $old_path)) {
                 // Windows fallback: copy then delete.
                 if (! $this->copy_directory($plugin_path, $old_path)) {
-                    $this->cleanup_temp_dir($temp_dir);
-                    $this->release_lock($repository_id);
                     return array(
                         'success'       => false,
                         'message'       => 'Could not move current plugin aside for atomic swap.',
@@ -365,8 +367,6 @@ class Deployment_Manager
                         $this->cleanup_dir($old_path);
                     }
                 }
-                $this->cleanup_temp_dir($temp_dir);
-                $this->release_lock($repository_id);
                 return array(
                     'success'       => false,
                     'message'       => 'Could not deploy new plugin files.',
@@ -376,8 +376,7 @@ class Deployment_Manager
             $this->cleanup_dir($extracted_dir);
         }
 
-        // Step 3: Clean up temp directory.
-        $this->cleanup_temp_dir($temp_dir);
+        // Step 3: Temp directory will be cleaned up by the finally block.
 
         // Post-deploy verification.
         $this->logger->info($deployment_id, 'Running post-deploy verification');
@@ -407,7 +406,6 @@ class Deployment_Manager
             }
 
             $this->update_deployment_status($deployment_id, 'failed', 'Deployment verification failed: ' . $verification['message']);
-            $this->release_lock($repository_id);
 
             return array(
                 'success'       => false,
@@ -445,9 +443,6 @@ class Deployment_Manager
             'duration'       => $duration,
         ));
 
-        // Release deployment lock.
-        $this->release_lock($repository_id);
-
         return array(
             'success'       => true,
             'message'       => 'Deployment completed successfully.',
@@ -455,6 +450,88 @@ class Deployment_Manager
             'commit_hash'   => $commit_hash,
             'duration'      => $duration,
         );
+
+        } catch (\Throwable $e) {
+            // Log the exception.
+            $this->logger->error($deployment_id, 'Deployment failed with exception: ' . $e->getMessage(), array(
+                'exception' => get_class($e),
+                'file'      => $e->getFile(),
+                'line'      => $e->getLine(),
+            ));
+
+            // Update deployment status to failed.
+            $this->update_deployment_status($deployment_id, 'failed', 'Deployment failed: ' . $e->getMessage());
+
+            return array(
+                'success'       => false,
+                'message'       => 'Deployment failed: ' . $e->getMessage(),
+                'deployment_id' => $deployment_id,
+            );
+
+        } finally {
+            // ALWAYS execute cleanup — guaranteed to run even on fatal errors or early returns.
+
+            // 1. Release lock if acquired.
+            if ($lock_acquired && $repository_id) {
+                $this->release_lock($repository_id);
+            }
+
+            // 2. Clean up temp directory if created.
+            if ($temp_dir && is_dir($temp_dir)) {
+                $this->cleanup_temp_dir($temp_dir);
+            }
+
+            // 3. Clean up .old directory if it still exists (shouldn't on success path).
+            if ($old_path && is_dir($old_path)) {
+                $this->cleanup_dir($old_path);
+            }
+
+            // 4. Clean up .failed directory if it exists.
+            $failed_path = ($old_path !== null) ? str_replace('.old', '.failed', $old_path) : null;
+            if ($failed_path && is_dir($failed_path)) {
+                $this->cleanup_dir($failed_path);
+            }
+        }
+    }
+
+    /**
+     * Register shutdown handler for crash recovery.
+     *
+     * Handles PHP fatal errors (E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR)
+     * by marking the deployment as failed and cleaning up temp directories.
+     * Uses error_log() since the Logger may not be available after a fatal error.
+     *
+     * @param int     $deployment_id Deployment ID.
+     * @param ?string $temp_dir     Reference to temp directory path (updated during deployment).
+     * @return void
+     */
+    private function register_shutdown_handler(int $deployment_id, ?string &$temp_dir): void
+    {
+        register_shutdown_function(function () use ($deployment_id, &$temp_dir) {
+            $error = error_get_last();
+            if ($error !== null && in_array($error['type'], array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR), true)) {
+                // PHP fatal error occurred — clean up.
+                global $wpdb;
+                $table = $wpdb->prefix . 'devsroom_deployments';
+
+                // Mark deployment as failed.
+                $wpdb->update($table, array('status' => 'failed'), array('id' => $deployment_id));
+
+                // Clean up temp directory.
+                if ($temp_dir && is_dir($temp_dir)) {
+                    $this->cleanup_temp_dir($temp_dir);
+                }
+
+                // Log via error_log since Logger may not be available after fatal.
+                error_log(sprintf(
+                    '[Devsoom AutoDeploy] Deployment %d failed with fatal error: %s in %s on line %d',
+                    $deployment_id,
+                    $error['message'],
+                    $error['file'],
+                    $error['line']
+                ));
+            }
+        });
     }
 
     /**
@@ -949,6 +1026,9 @@ class Deployment_Manager
     /**
      * Cleanup temporary directory.
      *
+     * Checks return values on all filesystem operations and logs failures.
+     * Continues cleanup even if individual operations fail (best-effort).
+     *
      * @param string $temp_dir Temporary directory.
      * @return void
      */
@@ -962,13 +1042,19 @@ class Deployment_Manager
 
             foreach ($files as $file) {
                 if ($file->isDir()) {
-                    rmdir($file->getPathname());
+                    if (! @rmdir($file->getPathname())) {
+                        error_log('[Devsoom AutoDeploy] Failed to remove temp directory: ' . $file->getPathname());
+                    }
                 } else {
-                    unlink($file->getPathname());
+                    if (! @unlink($file->getPathname())) {
+                        error_log('[Devsoom AutoDeploy] Failed to delete temp file: ' . $file->getPathname());
+                    }
                 }
             }
 
-            rmdir($temp_dir);
+            if (! @rmdir($temp_dir)) {
+                error_log('[Devsoom AutoDeploy] Failed to remove temp directory: ' . $temp_dir);
+            }
         }
     }
 }
