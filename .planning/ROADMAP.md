@@ -41,12 +41,11 @@ Plans:
   1. File operations during deployment use native PHP `rename()` and `stream_copy_to_stream()` instead of WP_Filesystem recursive copy, with `ZipArchive::extractTo()` for memory-safe extraction and WP_Filesystem as fallback only
   2. When only a few files changed between versions, the system syncs only those changed files via GitHub Compare API (handling additions, modifications, and deletions) instead of downloading the full archive — falling back to full download when >50% of files changed or on first deploy
   3. Backup creation and GitHub archive download run concurrently using `curl_multi` for HTTP overlap with local backup I/O, reducing total pipeline time compared to sequential execution
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — Memory-safe ZIP extraction + GitHub Compare API method (PERF-01, PERF-02 foundation)
+- [ ] 02-02-PLAN.md — Incremental file sync via Compare API + concurrent backup/download via curl_multi (PERF-02, PERF-03)
 
 ## Progress
 
@@ -56,4 +55,4 @@ Phases execute in numeric order: 1 → 2
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Safety Foundation | 0/3 | Planned | - |
-| 2. Performance | 0/3 | Not started | - |
+| 2. Performance | 0/2 | Planned | - |
