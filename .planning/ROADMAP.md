@@ -26,12 +26,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. If a deployment fails at any point, the live plugin directory is never left in a broken state — either the new version is fully swapped in or the old version remains intact
   3. After a deployment completes the file swap, the system verifies the plugin is loadable (syntax check, header existence, file readability, OPcache cleared); if verification fails, the previous version is automatically restored from backup
   4. If the deployment process crashes or encounters an unrecoverable error, all temporary files and directories are cleaned up — no orphaned temp dirs remain
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Per-plugin deployment locking (schema + lock logic + admin force-unlock)
+- [ ] 01-02-PLAN.md — Atomic file swap + post-deploy verification + automatic rollback
+- [ ] 01-03-PLAN.md — Error recovery (try/finally, shutdown handler, daily temp cleanup)
 
 ### Phase 2: Performance
 **Goal**: Deployments complete faster through optimized file operations, incremental syncing, and parallel execution
@@ -55,5 +55,5 @@ Phases execute in numeric order: 1 → 2
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Safety Foundation | 0/3 | Not started | - |
+| 1. Safety Foundation | 0/3 | Planned | - |
 | 2. Performance | 0/3 | Not started | - |
