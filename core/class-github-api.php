@@ -128,6 +128,24 @@ class GitHub_API
     }
 
     /**
+     * Compare two commits.
+     *
+     * Uses the GitHub Compare API to get file-level diff between two commits.
+     * Returns the full comparison including files array with status (added,
+     * modified, removed, renamed) for each changed file.
+     *
+     * @param string $owner Repository owner.
+     * @param string $repo  Repository name.
+     * @param string $base  Base commit SHA (old).
+     * @param string $head  Head commit SHA (new).
+     * @return array|false Comparison data or false on failure.
+     */
+    public function compare_commits(string $owner, string $repo, string $base, string $head): array|false
+    {
+        return $this->request('GET', "/repos/$owner/$repo/compare/$base...$head");
+    }
+
+    /**
      * Download repository archive.
      *
      * @param string $owner Repository owner.

@@ -273,23 +273,19 @@ class Deployment_Manager
             );
         }
 
-        // Extract archive.
+        // Extract archive using memory-safe entry-by-entry extraction (Pitfall 12).
         $this->logger->info($deployment_id, 'Extracting archive...');
 
-        $zip = new \ZipArchive();
-        if ($zip->open($archive_path) !== true) {
-            $this->logger->error($deployment_id, 'Failed to open archive');
-            $this->update_deployment_status($deployment_id, 'failed', 'Failed to open archive');
+        if (! $this->extract_to_entry_by_entry($archive_path, $temp_dir)) {
+            $this->logger->error($deployment_id, 'Failed to extract archive');
+            $this->update_deployment_status($deployment_id, 'failed', 'Failed to extract archive');
 
             return array(
                 'success' => false,
-                'message' => 'Failed to open archive.',
+                'message' => 'Failed to extract archive.',
                 'deployment_id' => $deployment_id,
             );
         }
-
-        $zip->extractTo($temp_dir);
-        $zip->close();
 
         // Find extracted directory.
         $extracted_dir = $this->find_extracted_directory($temp_dir);
@@ -861,6 +857,71 @@ class Deployment_Manager
         }
 
         return false;
+    }
+
+    /**
+     * Extract ZIP archive entry-by-entry for memory safety.
+     *
+     * Unlike extractTo() which decompresses into memory, this iterates each
+     * entry individually using getStream() — one file at a time. Prevents
+     * memory exhaustion on large plugins (Pitfall 12).
+     *
+     * @param string $archive_path Path to the ZIP file.
+     * @param string $dest_dir     Destination directory.
+     * @return bool True on success, false on failure.
+     */
+    private function extract_to_entry_by_entry(string $archive_path, string $dest_dir): bool
+    {
+        $zip = new \ZipArchive();
+        if ($zip->open($archive_path) !== true) {
+            return false;
+        }
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (false === $name) {
+                continue;
+            }
+
+            // Skip directories — they're created by their contained files.
+            if (str_ends_with($name, '/')) {
+                continue;
+            }
+
+            $dest_path = $dest_dir . '/' . $name;
+            $dest_parent = dirname($dest_path);
+
+            // Create parent directory if needed.
+            if (! is_dir($dest_parent)) {
+                wp_mkdir_p($dest_parent);
+            }
+
+            // Stream entry to disk.
+            $stream = $zip->getStream($name);
+            if (false === $stream) {
+                $zip->close();
+                return false;
+            }
+
+            $out = @fopen($dest_path, 'wb');
+            if (false === $out) {
+                fclose($stream);
+                $zip->close();
+                return false;
+            }
+
+            $written = stream_copy_to_stream($stream, $out);
+            fclose($stream);
+            fclose($out);
+
+            if (false === $written) {
+                $zip->close();
+                return false;
+            }
+        }
+
+        $zip->close();
+        return true;
     }
 
     /**
