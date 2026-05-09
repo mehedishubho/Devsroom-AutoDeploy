@@ -229,7 +229,9 @@ class Deployment_Manager
         }
 
         // Download repository archive.
-        $temp_dir = get_temp_dir() . 'devsroom-autodeploy-' . $repository_id . '-' . time();
+        // Use WP_CONTENT_DIR/upgrade/ so temp dir is on the same filesystem as
+        // WP_PLUGIN_DIR — this guarantees rename() is atomic on POSIX (Pitfall 1).
+        $temp_dir = WP_CONTENT_DIR . '/upgrade/devsroom-autodeploy-' . $repository_id . '-' . time();
         wp_mkdir_p($temp_dir);
 
         $archive_path = $temp_dir . '/archive.zip';
@@ -326,22 +328,98 @@ class Deployment_Manager
             }
         }
 
-        // Deploy files.
-        $this->logger->info($deployment_id, 'Deploying files...');
+        // Deploy files using atomic swap.
+        // Instead of deleting the live plugin then copying (dangerous window where a
+        // failure leaves the site broken), we move the old dir aside and rename the
+        // new dir into place. The old dir is preserved for rollback until verification passes.
+        $this->logger->info($deployment_id, 'Deploying files via atomic swap...');
 
-        WP_Filesystem();
-        global $wp_filesystem;
+        $old_path      = $plugin_path . '.old';
+        $plugin_exists = is_dir($plugin_path);
 
-        // Remove existing plugin directory.
-        if (is_dir($plugin_path)) {
-            $wp_filesystem->delete($plugin_path, true);
+        // Step 1: Move current plugin aside (if exists).
+        if ($plugin_exists) {
+            if (! @rename($plugin_path, $old_path)) {
+                // Windows fallback: copy then delete.
+                if (! $this->copy_directory($plugin_path, $old_path)) {
+                    $this->cleanup_temp_dir($temp_dir);
+                    $this->release_lock($repository_id);
+                    return array(
+                        'success'       => false,
+                        'message'       => 'Could not move current plugin aside for atomic swap.',
+                        'deployment_id' => $deployment_id,
+                    );
+                }
+                $this->cleanup_dir($plugin_path);
+            }
         }
 
-        // Create plugin directory.
-        wp_mkdir_p($plugin_path);
+        // Step 2: Move new plugin into place.
+        if (! @rename($extracted_dir, $plugin_path)) {
+            // Windows fallback: copy then delete.
+            if (! $this->copy_directory($extracted_dir, $plugin_path)) {
+                // Restore old plugin.
+                if ($plugin_exists) {
+                    if (! @rename($old_path, $plugin_path)) {
+                        $this->copy_directory($old_path, $plugin_path);
+                        $this->cleanup_dir($old_path);
+                    }
+                }
+                $this->cleanup_temp_dir($temp_dir);
+                $this->release_lock($repository_id);
+                return array(
+                    'success'       => false,
+                    'message'       => 'Could not deploy new plugin files.',
+                    'deployment_id' => $deployment_id,
+                );
+            }
+            $this->cleanup_dir($extracted_dir);
+        }
 
-        // Copy files.
-        $this->copy_directory($extracted_dir, $plugin_path);
+        // Step 3: Clean up temp directory.
+        $this->cleanup_temp_dir($temp_dir);
+
+        // Post-deploy verification.
+        $this->logger->info($deployment_id, 'Running post-deploy verification');
+        $verification = $this->verify_deployment($plugin_path, $repository['plugin_slug']);
+        $this->logger->info($deployment_id, 'Verification result', $verification);
+
+        if (! $verification['success']) {
+            // Verification failed — rollback to previous version.
+            $this->logger->warning($deployment_id, 'Verification failed, rolling back', $verification);
+
+            $failed_path = $plugin_path . '.failed';
+            // Move broken deployment aside.
+            @rename($plugin_path, $failed_path);
+
+            // Restore previous version.
+            if (is_dir($old_path)) {
+                if (! @rename($old_path, $plugin_path)) {
+                    // Windows fallback.
+                    $this->copy_directory($old_path, $plugin_path);
+                    $this->cleanup_dir($old_path);
+                }
+            }
+
+            // Clean up failed deployment.
+            if (is_dir($failed_path)) {
+                $this->cleanup_dir($failed_path);
+            }
+
+            $this->update_deployment_status($deployment_id, 'failed', 'Deployment verification failed: ' . $verification['message']);
+            $this->release_lock($repository_id);
+
+            return array(
+                'success'       => false,
+                'message'       => 'Deployment verification failed: ' . $verification['message'],
+                'deployment_id' => $deployment_id,
+            );
+        }
+
+        // Verification passed — clean up .old directory.
+        if (is_dir($old_path)) {
+            $this->cleanup_dir($old_path);
+        }
 
         // Update repository last commit hash.
         $this->update_repository_commit_hash($repository_id, $commit_hash);
@@ -366,9 +444,6 @@ class Deployment_Manager
             'commit_author'  => $commit['commit']['author']['name'] ?? '',
             'duration'       => $duration,
         ));
-
-        // Cleanup.
-        $this->cleanup_temp_dir($temp_dir);
 
         // Release deployment lock.
         $this->release_lock($repository_id);
@@ -712,16 +787,22 @@ class Deployment_Manager
     }
 
     /**
-     * Copy directory contents.
+     * Copy directory contents recursively.
+     *
+     * Used as a Windows fallback when rename() fails, and for moving plugin
+     * directories between locations. Returns false if any file copy fails.
      *
      * @param string $source Source directory.
      * @param string $dest   Destination directory.
-     * @return void
+     * @return bool True on success, false if any file copy fails.
      */
-    private function copy_directory(string $source, string $dest): void
+    private function copy_directory(string $source, string $dest): bool
     {
-        WP_Filesystem();
-        global $wp_filesystem;
+        if (! is_dir($source)) {
+            return false;
+        }
+
+        wp_mkdir_p($dest);
 
         $iterator = new \RecursiveIteratorIterator(
             new \RecursiveDirectoryIterator($source, \RecursiveDirectoryIterator::SKIP_DOTS),
@@ -734,9 +815,135 @@ class Deployment_Manager
             if ($item->isDir()) {
                 wp_mkdir_p($target);
             } else {
-                $wp_filesystem->copy($item->getPathname(), $target, true);
+                if (! copy($item->getPathname(), $target)) {
+                    return false;
+                }
             }
         }
+
+        return true;
+    }
+
+    /**
+     * Verify a deployed plugin is loadable.
+     *
+     * Runs a series of checks to confirm the plugin directory is valid after an
+     * atomic swap: file existence, PHP syntax, plugin header, readability, and
+     * OPcache invalidation. Returns detailed results for logging and rollback decisions.
+     *
+     * @param string $plugin_path Path to the plugin directory.
+     * @param string $plugin_slug Plugin slug (used to find the main file).
+     * @return array Verification result with keys: success (bool), message (string), checks (array).
+     */
+    private function verify_deployment(string $plugin_path, string $plugin_slug): array
+    {
+        $checks = array();
+
+        // Check 1: Main plugin file exists.
+        $main_file = $plugin_path . '/' . $plugin_slug . '.php';
+        if (! file_exists($main_file)) {
+            $checks['file_exists'] = false;
+            return array(
+                'success' => false,
+                'message' => 'Main plugin file not found',
+                'checks'  => $checks,
+            );
+        }
+        $checks['file_exists'] = true;
+
+        // Check 2: PHP syntax check via token_get_all().
+        try {
+            $code = file_get_contents($main_file);
+            if (false === $code) {
+                $checks['syntax'] = false;
+                return array(
+                    'success' => false,
+                    'message' => 'Could not read main plugin file',
+                    'checks'  => $checks,
+                );
+            }
+            token_get_all($code, TOKEN_PARSE);
+            $checks['syntax'] = true;
+        } catch (\Throwable $e) {
+            $checks['syntax'] = false;
+            return array(
+                'success' => false,
+                'message' => 'PHP syntax error: ' . $e->getMessage(),
+                'checks'  => $checks,
+            );
+        }
+
+        // Check 3: Plugin header exists.
+        $header_content = file_get_contents($main_file, false, null, 0, 8192);
+        if (! preg_match('/^[\s\/*#@]*Plugin Name:/mi', $header_content)) {
+            $checks['header'] = false;
+            return array(
+                'success' => false,
+                'message' => 'Plugin header not found in main file',
+                'checks'  => $checks,
+            );
+        }
+        $checks['header'] = true;
+
+        // Check 4: Critical files readable.
+        $critical_paths = array($main_file, $plugin_path . '/core');
+        foreach ($critical_paths as $path) {
+            if (file_exists($path) && ! is_readable($path)) {
+                $checks['readable'] = false;
+                return array(
+                    'success' => false,
+                    'message' => 'Critical path not readable: ' . basename($path),
+                    'checks'  => $checks,
+                );
+            }
+        }
+        $checks['readable'] = true;
+
+        // Check 5: Clear OPcache.
+        if (function_exists('wp_opcache_invalidate')) {
+            wp_opcache_invalidate($main_file, true);
+        }
+
+        return array(
+            'success' => true,
+            'message' => 'Verification passed',
+            'checks'  => $checks,
+        );
+    }
+
+    /**
+     * Remove a directory and all its contents.
+     *
+     * Used for cleaning up .old and .failed directories after atomic swap.
+     * Logs failures but does not abort — best-effort cleanup.
+     *
+     * @param string $path Directory path to remove.
+     * @return void
+     */
+    private function cleanup_dir(string $path): void
+    {
+        if (! is_dir($path)) {
+            return;
+        }
+
+        $files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+
+        foreach ($files as $file) {
+            if ($file->isDir()) {
+                if (! @rmdir($file->getPathname())) {
+                    error_log('Devsoom AutoDeploy: Failed to remove directory: ' . $file->getPathname());
+                }
+            } else {
+                if (! @unlink($file->getPathname())) {
+                    error_log('Devsoom AutoDeploy: Failed to remove file: ' . $file->getPathname());
+                }
+            }
+        }
+
+        @rmdir($path);
     }
 
     /**
