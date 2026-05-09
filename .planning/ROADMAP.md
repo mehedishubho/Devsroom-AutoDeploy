@@ -29,9 +29,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Per-plugin deployment locking (schema + lock logic + admin force-unlock)
-- [ ] 01-02-PLAN.md — Atomic file swap + post-deploy verification + automatic rollback
-- [ ] 01-03-PLAN.md — Error recovery (try/finally, shutdown handler, daily temp cleanup)
+- [x] 01-01-PLAN.md — Per-plugin deployment locking (schema + lock logic + admin force-unlock)
+- [x] 01-02-PLAN.md — Atomic file swap + post-deploy verification + automatic rollback
+- [x] 01-03-PLAN.md — Error recovery (try/finally, shutdown handler, daily temp cleanup)
 
 ### Phase 2: Performance
 **Goal**: Deployments complete faster through optimized file operations, incremental syncing, and parallel execution
