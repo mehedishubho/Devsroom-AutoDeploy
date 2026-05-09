@@ -36,6 +36,11 @@ class Activator
         // Set activation timestamp.
         update_option('devsroom_autodeploy_activated_at', current_time('mysql'));
 
+        // Schedule orphaned temp directory cleanup (daily).
+        if (! wp_next_scheduled('devsroom_autodeploy_cleanup_orphaned_event')) {
+            wp_schedule_event(time(), 'daily', 'devsroom_autodeploy_cleanup_orphaned_event');
+        }
+
         // Flush rewrite rules.
         flush_rewrite_rules();
     }

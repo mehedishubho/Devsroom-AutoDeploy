@@ -28,6 +28,7 @@ class Deactivator
         // Clear scheduled events.
         wp_clear_scheduled_hook('devsroom_autodeploy_polling_event');
         wp_clear_scheduled_hook('devsroom_autodeploy_cleanup_event');
+        wp_clear_scheduled_hook('devsroom_autodeploy_cleanup_orphaned_event');
 
         // Flush rewrite rules.
         flush_rewrite_rules();

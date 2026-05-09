@@ -48,6 +48,9 @@ class Polling_Scheduler
 
         // Register cleanup event.
         add_action('devsroom_autodeploy_cleanup_event', array($this, 'cleanup'));
+
+        // Register orphaned temp directory cleanup event.
+        add_action('devsroom_autodeploy_cleanup_orphaned_event', array($this, 'cleanup_orphaned_temp_dirs'));
     }
 
     /**
@@ -153,5 +156,85 @@ class Polling_Scheduler
 
         // Cleanup expired backups.
         $backup_manager->cleanup_expired_backups();
+    }
+
+    /**
+     * Clean up orphaned temp directories from crashed or failed deployments.
+     *
+     * Scans WP_CONTENT_DIR/upgrade/ for directories matching the
+     * devsroom-autodeploy-* pattern that are older than 1 hour.
+     * These are leftovers from deployments that crashed or failed
+     * without proper cleanup.
+     *
+     * @return void
+     */
+    public function cleanup_orphaned_temp_dirs(): void
+    {
+        $upgrade_dir = WP_CONTENT_DIR . '/upgrade/';
+        if (! is_dir($upgrade_dir)) {
+            return;
+        }
+
+        $pattern    = 'devsroom-autodeploy-*';
+        $threshold  = HOUR_IN_SECONDS; // 1 hour.
+        $now        = time();
+
+        $dirs = glob($upgrade_dir . $pattern, GLOB_ONLYDIR);
+        if (! $dirs) {
+            return;
+        }
+
+        foreach ($dirs as $dir) {
+            $dir_age = $now - filemtime($dir);
+            if ($dir_age > $threshold) {
+                // Force remove the directory.
+                $this->force_remove_dir($dir);
+                error_log(sprintf(
+                    '[Devsoom AutoDeploy] Cleaned up orphaned temp directory: %s (age: %d seconds)',
+                    basename($dir),
+                    $dir_age
+                ));
+            }
+        }
+    }
+
+    /**
+     * Schedule orphaned temp directory cleanup cron event.
+     *
+     * @return void
+     */
+    public function schedule_orphaned_cleanup(): void
+    {
+        if (! wp_next_scheduled('devsroom_autodeploy_cleanup_orphaned_event')) {
+            wp_schedule_event(time(), 'daily', 'devsroom_autodeploy_cleanup_orphaned_event');
+        }
+    }
+
+    /**
+     * Force remove a directory and all its contents.
+     *
+     * Uses RecursiveIteratorIterator with CHILD_FIRST ordering to safely
+     * delete all files before removing directories.
+     *
+     * @param string $dir Directory path to remove.
+     * @return void
+     */
+    private function force_remove_dir(string $dir): void
+    {
+        if (! is_dir($dir)) {
+            return;
+        }
+        $items = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($items as $item) {
+            if ($item->isDir()) {
+                rmdir($item->getRealPath());
+            } else {
+                unlink($item->getRealPath());
+            }
+        }
+        rmdir($dir);
     }
 }
