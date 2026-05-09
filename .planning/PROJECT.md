@@ -1,28 +1,12 @@
-# Devsoom AutoDeploy — Pipeline Optimization
+# Devsoom AutoDeploy
 
 ## What This Is
 
-A WordPress plugin that automates deploying plugins from GitHub repositories to a WordPress site. It supports webhook-triggered, polling-based, and manual deployments with backup, security scanning, and notification. The current deployment pipeline works but needs a comprehensive overhaul to handle 20+ plugins reliably at scale — making deployments faster (incremental sync), safer (atomic swaps, auto-rollback), and more resilient (parallel steps, better error recovery).
+A WordPress plugin that automates deploying plugins from GitHub repositories to a WordPress site. Supports webhook-triggered, polling-based, and manual deployments with atomic file swaps, incremental sync, post-deploy verification, automatic rollback, and concurrent pipeline execution. Production-grade safety and performance for managing 20+ plugins.
 
 ## Core Value
 
 Deployments must be fast AND safe — every deploy should complete quickly with zero risk of breaking a live site, even when managing 20+ plugins.
-
-## Current Milestone: v2.0 Pipeline Optimization
-
-**Goal:** Transform the working sequential deployment pipeline into a production-grade system that handles 20+ plugins safely and efficiently.
-
-**Target features:**
-- Deployment locking (per-plugin concurrency control)
-- Atomic file swaps (temp dir + rename)
-- Post-deploy verification (syntax check, plugin file validation)
-- Automatic rollback on failure
-- Optimized file copy operations (native PHP)
-- Incremental file deployment (GitHub Compare API)
-- Progress tracking with real-time status
-- Deployment queue system (20+ plugins)
-- Parallel pipeline steps (backup + download concurrent)
-- Better error recovery (cleanup partial states)
 
 ## Requirements
 
@@ -42,18 +26,18 @@ Deployments must be fast AND safe — every deploy should complete quickly with 
 - ✓ Self-deployment prevention (cannot overwrite the AutoDeploy plugin itself) — existing
 - ✓ Database schema with 5 tables (repositories, auth_tokens, deployments, logs, backups) — existing
 - ✓ Backup retention and cleanup via WP-Cron daily event — existing
+- ✓ Deployment locking — per-plugin DB-based lock with stale detection and admin force-unlock — v2.0
+- ✓ Atomic file swaps — rename-based swap with Windows fallback, no more delete-then-copy — v2.0
+- ✓ Post-deploy verification — syntax check, plugin header, readability, OPcache — v2.0
+- ✓ Automatic rollback on failure — restores previous version on verification failure — v2.0
+- ✓ Optimized file operations — native PHP rename/copy, memory-safe entry-by-entry ZIP extraction — v2.0
+- ✓ Incremental file deployment — GitHub Compare API, sync only changed files — v2.0
+- ✓ Parallel pipeline steps — concurrent backup + download via curl_multi — v2.0
+- ✓ Better error recovery — try/finally, shutdown handler, daily orphan cleanup cron — v2.0
 
 ### Active
 
-- [ ] Incremental file deployment — only sync changed files instead of downloading and replacing the full archive every time
-- [ ] Atomic file swaps — deploy to a temp directory then rename-swap to avoid partial/broken deploys on failure
-- [ ] Automatic rollback on failure — restore from backup immediately if any post-swap verification fails
-- [ ] Parallel pipeline steps — backup and GitHub archive download should run concurrently, not sequentially
-- [ ] Deployment locking — prevent concurrent deploys to the same plugin (queue or reject overlapping requests)
 - [ ] Progress tracking with real-time status — expose pipeline step progress (downloading, extracting, scanning, deploying) for UI feedback
-- [ ] Post-deploy verification — confirm the plugin loads correctly after deployment (check for PHP syntax errors, verify main plugin file exists)
-- [ ] Optimized file copy operations — replace slow recursive WP_Filesystem copy with native PHP stream copy or rename where possible
-- [ ] Better error recovery — clean up partial states, resume or retry failed downloads, don't leave orphaned temp files
 - [ ] Deployment queue system — for 20+ plugins, queue deploys and process them without overwhelming the server
 
 ### Out of Scope
@@ -66,13 +50,7 @@ Deployments must be fast AND safe — every deploy should complete quickly with 
 
 ## Context
 
-**Current state:** The plugin is fully functional with all basic deployment features working. The pipeline is sequential (backup → download full zip → extract → scan → delete old → copy new → cleanup). This works for a handful of plugins but shows its limits at scale:
-- Every deployment downloads the full repository archive regardless of what changed
-- File operations use slow recursive WP_Filesystem copy instead of native PHP operations
-- No deployment locking means concurrent webhooks can cause conflicts
-- If the copy fails mid-way, the old plugin is already deleted with no automatic recovery
-- No post-deploy verification — a broken plugin silently replaces a working one
-- Sequential steps waste time when backup and download could run in parallel
+**Current state:** v2.0 Pipeline Optimization shipped. The deployment pipeline now uses atomic file swaps (rename-based with Windows fallback), post-deploy verification (syntax, header, readability, OPcache), automatic rollback on failure, incremental sync via GitHub Compare API, concurrent backup+download via curl_multi, and database-based deployment locking with stale detection. Error recovery wraps everything in try/finally with shutdown handler fallback and daily orphan cleanup.
 
 **Technical environment:** PHP 8.0+, WordPress 6.0+, MySQL/MariaDB, no Composer/npm dependencies. All WordPress-native APIs.
 
@@ -92,10 +70,14 @@ Deployments must be fast AND safe — every deploy should complete quickly with 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Incremental sync via GitHub Compare API | Avoids full downloads; GitHub API supports comparing commits and returning file diffs | — Pending |
-| Atomic swap via temp dir + rename | Rename is instant and atomic on POSIX; fallback to copy on Windows | — Pending |
-| Deployment queue via custom DB table | Avoids PHP process-level locking; survives across requests | — Pending |
-| Native PHP file ops instead of WP_Filesystem | WP_Filesystem adds abstraction overhead; direct PHP is faster and we control the environment | — Pending |
+| Incremental sync via GitHub Compare API | Avoids full downloads; API-provided file lists avoid line-ending hash mismatch issues | ✓ Good — v2.0 |
+| Atomic swap via temp dir + rename | Rename is instant and atomic on POSIX; copy fallback for Windows | ✓ Good — v2.0 |
+| Database columns for locking | Survives across PHP processes; atomic UPDATE with WHERE; stale detection via TIMESTAMP | ✓ Good — v2.0 |
+| Native PHP file ops instead of WP_Filesystem | WP_Filesystem adds overhead; direct PHP is faster; memory-safe entry-by-entry extraction | ✓ Good — v2.0 |
+| TTL-based stale lock expiry (10 min) | Simple, no admin intervention needed; force-unlock button as safety valve | ✓ Good — v2.0 |
+| Entry-by-entry ZIP extraction | Prevents memory exhaustion on large plugins (Pitfall 12); getStream() + stream_copy_to_stream() | ✓ Good — v2.0 |
+| curl_multi for concurrent pipeline | Bypasses WordPress HTTP API for true concurrent HTTP; justified for backup+download overlap | ✓ Good — v2.0 |
+| try/finally + register_shutdown_function | Three-layer cleanup: normal path, exception path, fatal error path | ✓ Good — v2.0 |
 
 ## Evolution
 
@@ -115,4 +97,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-10 after starting milestone v2.0 Pipeline Optimization*
+*Last updated: 2026-05-10 after v2.0 Pipeline Optimization milestone*
