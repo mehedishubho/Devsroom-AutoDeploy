@@ -2,19 +2,21 @@
 Contributors: wpmhs
 Author URL: https://wpmhs.com/
 Plugin URI: https://plugins.devsroom.com/
-Tags: deployment, github, automation, webhook, auto-update, git, continuous integration, ci/cd
+Tags: deployment, github, automation, webhook, auto-update, git, continuous integration, ci/cd, atomic-deploy, rollback
 Requires at least: 6.0
 Tested up to: 6.9.1
-Stable tag: 1.0.0
+Stable tag: 2.0.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt
 
-Automate WordPress plugin deployments from GitHub repositories to live WordPress websites.
+Automate WordPress plugin deployments from GitHub repositories with atomic safety, incremental sync, and automatic rollback.
 
 == Description ==
 
-Devsroom AutoDeploy is a WordPress plugin that automates the deployment of other WordPress plugins from GitHub repositories to live WordPress websites. The plugin eliminates the manual process of zipping plugin files and uploading them to live sites.
+Devsroom AutoDeploy is a WordPress plugin that automates the deployment of other WordPress plugins from GitHub repositories to live WordPress websites. It eliminates the manual process of zipping plugin files and uploading them to live sites.
+
+The deployment pipeline is built for safety and speed: atomic file swaps ensure a failed deploy never breaks a live site, post-deploy verification catches broken plugins before they go live, automatic rollback restores the previous version on failure, and incremental sync downloads only the files that changed.
 
 = Key Features =
 
@@ -22,51 +24,97 @@ Devsroom AutoDeploy is a WordPress plugin that automates the deployment of other
   * Connect each plugin to a GitHub repository (public or private)
   * Authenticate securely via GitHub OAuth or Personal Access Token
   * Specify the branch to track (e.g., main, dev)
-  * Validate repository ownership before deployment
+  * Automatic webhook creation on repository connection
 
-* **Automatic Deployment**
-  * Detect new commits in the connected repository automatically or via GitHub webhook
-  * Download updated plugin files from GitHub
-  * Update/replace the existing plugin on the live WordPress site
-  * Optionally create backups of the existing plugin before updating
+* **Deployment Triggers**
+  * Webhook deployment (instant on push)
+  * Polling deployment (scheduled checks: hourly, twice daily, daily)
+  * Manual deployment from admin UI ("Deploy Now" or "Deploy & Activate")
+
+* **Atomic File Swaps**
+  * Deploys to a temporary directory first, then renames into place
+  * Live plugin directory is never deleted until new version is verified
+  * Uses `rename()` on Linux (atomic) with copy fallback for Windows
+  * If the swap fails, the old version remains intact
+
+* **Post-Deploy Verification**
+  * Main plugin file existence check
+  * PHP syntax validation via `token_get_all()`
+  * WordPress plugin header verification
+  * Critical file readability check
+  * OPcache invalidation
+
+* **Automatic Rollback**
+  * If post-deploy verification fails, previous version is automatically restored
+  * No manual intervention needed
+  * Broken deployment is cleaned up automatically
+
+* **Deployment Locking**
+  * Per-plugin database-based locking prevents concurrent deployments
+  * Atomic SQL lock acquisition (no race conditions)
+  * Stale locks auto-expire after 10 minutes
+  * Admin force-unlock button on repository page
+
+* **Incremental File Sync**
+  * Uses GitHub Compare API to detect changed files
+  * Only changed files are downloaded (not the full archive)
+  * Handles additions, modifications, and file deletions
+  * Falls back to full archive on >100 changes or first deploy
+
+* **Memory-Safe Extraction**
+  * Entry-by-entry ZIP extraction prevents memory exhaustion
+  * Safe for large plugins (WooCommerce, page builders)
+  * Uses `getStream()` + `stream_copy_to_stream()` instead of `extractTo()`
+
+* **Concurrent Pipeline**
+  * Backup creation and archive download run simultaneously
+  * Uses `curl_multi` for HTTP overlap with local disk I/O
+  * Reduces total deployment time
+
+* **Error Recovery**
+  * Entire pipeline wrapped in try/finally for guaranteed cleanup
+  * Shutdown handler catches PHP fatal errors
+  * Daily WP-Cron cleanup of orphaned temp directories
+  * All filesystem operations check return values
 
 * **Security Measures**
-  * Only admin users can connect repositories and trigger deployments
-  * Scan plugin files for malicious code (basic PHP injection checks)
-  * Log all deployments with user, date, and status
-
-* **WordPress Admin Panel**
-  * Dashboard page for Devsroom AutoDeploy settings
-  * Options to:
-    * Add/remove GitHub repository for each plugin
-    * Select deployment branch
-    * Enable/disable automatic deployments
-    * Trigger manual deployment
-    * View deployment logs
+  * Admin-only access control
+  * Nonce verification for all forms
+  * HMAC-SHA256 webhook signature validation
+  * AES-256-CBC encrypted token storage
+  * Input sanitization and output escaping
+  * SQL injection prevention via prepared statements
+  * Self-deployment prevention
+  * Configurable security scanning (basic and advanced)
 
 * **Notifications**
-  * Notify admin via email or WordPress notifications after successful deployment or on errors
+  * Email notifications for deployment success, failure, and security alerts
+  * Configurable notification email address
 
-* **Compatibility**
-  * Compatible with WordPress 6.x+
-  * Lightweight and optimized for performance
-  * Works alongside other plugins and themes without conflicts
+* **WordPress Admin Panel**
+  * Dashboard with repository overview and recent deployments
+  * Repository management with lock status and force-unlock
+  * Deployment history with per-deployment logs
+  * Settings for polling, backups, notifications, and authentication
 
 == Installation ==
 
 1. Upload the `devsroom-autodeploy` folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
+3. Go to **AutoDeploy → Settings** to configure authentication
 
 == Frequently Asked Questions ==
 
 = What is Devsroom AutoDeploy? =
 
-Devsroom AutoDeploy is a WordPress plugin that automates the deployment of other WordPress plugins from GitHub repositories to live WordPress websites. It eliminates the manual process of zipping plugin files and uploading them to live sites.
+Devsroom AutoDeploy is a WordPress plugin that automates the deployment of other WordPress plugins from GitHub repositories to live WordPress websites. It features atomic file swaps, incremental sync, post-deploy verification, and automatic rollback.
 
 = What are the requirements? =
 
 * WordPress 6.0 or higher
 * PHP 8.0 or higher
+* `openssl` PHP extension (for token encryption)
+* `zip` PHP extension (for archive extraction and backups)
 * A GitHub account with access to the repositories you want to deploy
 
 = How does automatic deployment work? =
@@ -77,18 +125,18 @@ The plugin supports two automatic deployment methods:
 
 2. **Polling Deployment** (Scheduled): The plugin checks for updates on a schedule (configurable: hourly, twice daily, daily) and triggers deployment if a new commit is detected.
 
-= Is it secure? =
+= What happens if a deployment fails? =
 
-Yes, the plugin implements several security measures:
+The plugin has multiple safety layers:
 
-* Admin-only access control
-* Nonce verification for all forms
-* Webhook signature validation
-* Encrypted token storage
-* Input sanitization and output escaping
-* SQL injection prevention via prepared statements
-* File path validation to prevent directory traversal
-* Optional security scanning for malicious code
+1. **Atomic swap** — the live plugin is never deleted until the new version is verified
+2. **Post-deploy verification** — syntax, header, readability, and OPcache checks
+3. **Automatic rollback** — if verification fails, the previous version is restored automatically
+4. **Error recovery** — try/finally and shutdown handlers clean up temp files on any failure
+
+= How does incremental sync work? =
+
+When deploying, the plugin uses the GitHub Compare API to detect exactly which files changed between the last deployed commit and the new one. Only changed files are downloaded and synced. If >100 files changed or any download fails, it falls back to downloading the full archive.
 
 = Can I use it with private repositories? =
 
@@ -98,21 +146,15 @@ Yes, you can connect to both public and private GitHub repositories. For private
 
 Yes, you can configure the plugin to automatically create backups of the existing plugin before each deployment. You can set backup retention period and maximum backup size in the settings.
 
-= What happens if a deployment fails? =
+= What is deployment locking? =
 
-If a deployment fails, the plugin will:
-* Log the error with details
-* Send a notification email (if enabled)
-* Keep the previous version intact (if backup was created)
-* Display the error in the deployment logs
+Deployment locking prevents concurrent deployments to the same plugin. If a deployment is already running (e.g., from a webhook) and another request arrives (e.g., manual trigger), the second request is rejected with a message. Locks auto-expire after 10 minutes to handle crashed deployments. Admins can also force-unlock from the repository page.
 
 = Can I trigger deployments manually? =
 
-Yes, you can manually trigger deployments from the Repositories page. Simply click the "Deploy Now" button next to any connected repository.
+Yes, you can manually trigger deployments from the Repositories page. Click "Deploy Now" to deploy only, or "Deploy & Activate" to deploy and activate the plugin immediately.
 
 = What security scanning options are available? =
-
-The plugin includes configurable security scanning:
 
 * **None**: No scanning
 * **Basic**: Checks for common PHP injection patterns (eval(), assert(), base64_decode(), system(), exec(), etc.)
@@ -137,7 +179,7 @@ The plugin includes configurable security scanning:
 
 = Can I deploy multiple plugins? =
 
-Yes, you can connect multiple WordPress plugins to their respective GitHub repositories and manage all deployments from a single dashboard.
+Yes, you can connect multiple WordPress plugins to their respective GitHub repositories and manage all deployments from a single dashboard. Each plugin gets its own deployment lock, so deploying one plugin doesn't block others.
 
 = Does it work with GitHub Enterprise? =
 
@@ -157,6 +199,16 @@ Currently, the plugin only supports GitHub. Support for other Git hosting servic
 
 == Changelog ==
 
+= 2.0.0 =
+* Deployment Locking — Per-plugin database-based locking with stale detection and admin force-unlock
+* Atomic File Swaps — Rename-based swap replacing delete-then-copy pattern
+* Post-Deploy Verification — 5-check verification (syntax, header, readability, OPcache)
+* Automatic Rollback — Previous version restored on verification failure
+* Incremental Sync — GitHub Compare API downloads only changed files
+* Memory-Safe Extraction — Entry-by-entry ZIP extraction prevents memory exhaustion
+* Concurrent Pipeline — Backup and download run simultaneously via curl_multi
+* Error Recovery — try/finally, shutdown handler, daily orphan cleanup cron
+
 = 1.0.0 =
 * Initial release
 * GitHub OAuth and PAT authentication
@@ -169,5 +221,9 @@ Currently, the plugin only supports GitHub. Support for other Git hosting servic
 * Full admin dashboard
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+Major safety and performance upgrade. All deployments now use atomic file swaps, post-deploy verification, and automatic rollback. Incremental sync reduces bandwidth usage. Recommended for all users.
+
 = 1.0.0 =
 Initial release of Devsroom AutoDeploy. No previous version to upgrade from.
