@@ -167,6 +167,24 @@ class Deployment_Manager
             'commit_hash'  => $commit_hash,
         ));
 
+        // Acquire deployment lock to prevent concurrent deploys to the same plugin.
+        $lock_result = $this->acquire_lock($repository_id, $deployment_id);
+
+        if (! $lock_result || ! $lock_result['success']) {
+            $error_message = $lock_result['message'] ?? 'Failed to acquire deployment lock';
+            $this->logger->error($deployment_id, 'Deployment rejected: could not acquire lock', array(
+                'repository_id' => $repository_id,
+                'reason'        => $error_message,
+            ));
+            $this->update_deployment_status($deployment_id, 'failed', $error_message);
+
+            return array(
+                'success'       => false,
+                'message'       => $error_message,
+                'deployment_id' => $deployment_id,
+            );
+        }
+
         // Get plugin path.
         $plugin_path = WP_PLUGIN_DIR . '/' . $repository['plugin_slug'];
 
@@ -236,6 +254,7 @@ class Deployment_Manager
 
             // Cleanup.
             $this->cleanup_temp_dir($temp_dir);
+            $this->release_lock($repository_id);
 
             return array(
                 'success' => false,
@@ -252,6 +271,7 @@ class Deployment_Manager
             $this->logger->error($deployment_id, 'Failed to open archive');
             $this->update_deployment_status($deployment_id, 'failed', 'Failed to open archive');
             $this->cleanup_temp_dir($temp_dir);
+            $this->release_lock($repository_id);
 
             return array(
                 'success' => false,
@@ -270,6 +290,7 @@ class Deployment_Manager
             $this->logger->error($deployment_id, 'Failed to find extracted directory');
             $this->update_deployment_status($deployment_id, 'failed', 'Failed to find extracted directory');
             $this->cleanup_temp_dir($temp_dir);
+            $this->release_lock($repository_id);
 
             return array(
                 'success' => false,
@@ -349,6 +370,9 @@ class Deployment_Manager
         // Cleanup.
         $this->cleanup_temp_dir($temp_dir);
 
+        // Release deployment lock.
+        $this->release_lock($repository_id);
+
         return array(
             'success'       => true,
             'message'       => 'Deployment completed successfully.',
@@ -356,6 +380,132 @@ class Deployment_Manager
             'commit_hash'   => $commit_hash,
             'duration'      => $duration,
         );
+    }
+
+    /**
+     * Acquire deployment lock for a repository.
+     *
+     * Uses an atomic UPDATE with WHERE locked_at IS NULL to prevent race conditions.
+     * Stale locks older than 10 minutes are automatically cleared.
+     *
+     * @param int $repository_id Repository ID.
+     * @param int $deployment_id Deployment ID that will hold the lock.
+     * @return array|false Lock result array or false on failure.
+     */
+    public function acquire_lock(int $repository_id, int $deployment_id): array|false
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
+
+        // Attempt atomic lock acquisition.
+        $updated = $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE {$table_name} SET locked_at = NOW(), locked_by = %d WHERE id = %d AND locked_at IS NULL",
+                $deployment_id,
+                $repository_id
+            )
+        );
+
+        if (1 === $updated) {
+            $this->logger->info($deployment_id, 'Deployment lock acquired', array(
+                'repository_id' => $repository_id,
+            ));
+
+            return array(
+                'success' => true,
+                'message' => 'Lock acquired',
+            );
+        }
+
+        // Lock exists — check if it's stale (older than 10 minutes).
+        $stale_lock = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT locked_at, locked_by FROM {$table_name} WHERE id = %d AND locked_at < DATE_SUB(NOW(), INTERVAL 10 MINUTE)",
+                $repository_id
+            ),
+            ARRAY_A
+        );
+
+        if ($stale_lock) {
+            // Force-acquire stale lock.
+            $wpdb->query(
+                $wpdb->prepare(
+                    "UPDATE {$table_name} SET locked_at = NOW(), locked_by = %d WHERE id = %d",
+                    $deployment_id,
+                    $repository_id
+                )
+            );
+
+            $this->logger->warning($deployment_id, 'Stale deployment lock cleared', array(
+                'repository_id'    => $repository_id,
+                'previous_lock_at' => $stale_lock['locked_at'],
+                'previous_lock_by' => $stale_lock['locked_by'],
+            ));
+
+            return array(
+                'success'           => true,
+                'message'           => 'Lock acquired (stale lock cleared)',
+                'stale_lock_cleared' => true,
+            );
+        }
+
+        // Lock exists and is NOT stale — reject.
+        $this->logger->warning($deployment_id, 'Deployment rejected: lock already held', array(
+            'repository_id' => $repository_id,
+        ));
+
+        return array(
+            'success' => false,
+            'message' => 'Deployment already in progress for this plugin',
+        );
+    }
+
+    /**
+     * Release deployment lock for a repository.
+     *
+     * @param int $repository_id Repository ID.
+     * @return void
+     */
+    public function release_lock(int $repository_id): void
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
+
+        $wpdb->update(
+            $table_name,
+            array(
+                'locked_at' => null,
+                'locked_by' => null,
+            ),
+            array('id' => $repository_id),
+            array('%s', '%s'),
+            array('%d')
+        );
+    }
+
+    /**
+     * Check if a repository is currently locked.
+     *
+     * @param int $repository_id Repository ID.
+     * @return array|false Lock info array or false if not locked.
+     */
+    public function is_locked(int $repository_id): array|false
+    {
+        global $wpdb;
+
+        $table_name = $wpdb->prefix . 'devsroom_repositories';
+
+        $lock = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT locked_at, locked_by FROM {$table_name} WHERE id = %d AND locked_at IS NOT NULL",
+                $repository_id
+            ),
+            ARRAY_A
+        );
+
+        return $lock ?: false;
     }
 
     /**

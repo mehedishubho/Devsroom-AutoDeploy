@@ -102,6 +102,8 @@ class Schema
 			status enum('active', 'paused', 'error') DEFAULT 'active',
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			locked_at timestamp NULL DEFAULT NULL,
+			locked_by bigint(20) unsigned DEFAULT NULL,
 			PRIMARY KEY (id),
 			UNIQUE KEY plugin_slug (plugin_slug),
 			UNIQUE KEY webhook_secret (webhook_secret),
@@ -236,6 +238,30 @@ class Schema
 		) $this->charset;";
 
         dbDelta($sql);
+    }
+
+    /**
+     * Upgrade schema for existing installations.
+     *
+     * Adds new columns that were introduced after the initial release.
+     * Safe to call multiple times — only applies changes that haven't been applied yet.
+     *
+     * @return void
+     */
+    public static function upgrade_schema(): void
+    {
+        global $wpdb;
+
+        $table    = $wpdb->prefix . 'devsroom_repositories';
+        $columns  = $wpdb->get_col("DESCRIBE {$table}");
+
+        if (! in_array('locked_at', $columns, true)) {
+            $wpdb->query("ALTER TABLE {$table} ADD COLUMN locked_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at");
+        }
+
+        if (! in_array('locked_by', $columns, true)) {
+            $wpdb->query("ALTER TABLE {$table} ADD COLUMN locked_by BIGINT(20) UNSIGNED NULL DEFAULT NULL AFTER locked_at");
+        }
     }
 
     /**
