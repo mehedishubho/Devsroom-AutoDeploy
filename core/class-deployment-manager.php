@@ -217,66 +217,61 @@ class Deployment_Manager
             );
         }
 
-        // Create backup if enabled.
-        $backup_path = null;
-        if ($repository['enable_backup'] && is_dir($plugin_path)) {
-            $this->update_deployment_status($deployment_id, 'backing_up');
-            $this->logger->info($deployment_id, 'Creating backup...');
+        // Create backup and download archive concurrently (PERF-03).
+        // Uses curl_multi to overlap HTTP download with local backup I/O.
+        $temp_dir = WP_CONTENT_DIR . '/upgrade/devsroom-autodeploy-' . $repository_id . '-' . time();
+        wp_mkdir_p($temp_dir);
 
-            $backup = $this->backup_manager->create_backup(
+        $archive_path = $temp_dir . '/archive.zip';
+        $backup_path  = null;
+
+        $this->update_deployment_status($deployment_id, 'backing_up');
+        $this->logger->info($deployment_id, 'Starting concurrent backup and download...');
+
+        if ($repository['enable_backup'] && is_dir($plugin_path)) {
+            $concurrent_result = $this->concurrent_backup_and_download(
+                $this->backup_manager,
+                $github_api,
                 $plugin_path,
                 $commit_hash,
-                $repository_id
+                $repository_id,
+                $repository['repo_owner'],
+                $repository['repo_name'],
+                $repository['branch'],
+                $archive_path,
+                $deployment_id
             );
 
-            if ($backup) {
-                $backup_path = $backup['backup_path'];
+            if ($concurrent_result['backup']) {
+                $backup_path = $concurrent_result['backup']['backup_path'];
                 $this->logger->info($deployment_id, 'Backup created', array(
                     'backup_path' => $backup_path,
-                    'file_size'   => $backup['file_size'],
+                    'file_size'   => $concurrent_result['backup']['file_size'],
                 ));
             } else {
                 $this->logger->warning($deployment_id, 'Failed to create backup');
             }
-        }
 
-        // Download repository archive or sync incrementally.
-        // Use WP_CONTENT_DIR/upgrade/ so temp dir is on the same filesystem as
-        // WP_PLUGIN_DIR — this guarantees rename() is atomic on POSIX (Pitfall 1).
-        $temp_dir = WP_CONTENT_DIR . '/upgrade/devsroom-autodeploy-' . $repository_id . '-' . time();
-        wp_mkdir_p($temp_dir);
+            if (! $concurrent_result['download']) {
+                $this->logger->error($deployment_id, 'Failed to download repository archive');
+                $this->update_deployment_status($deployment_id, 'failed', 'Failed to download repository archive');
+                $this->notification->send_deployment_failure(array(
+                    'plugin_name'   => $repository['plugin_slug'],
+                    'repo_owner'    => $repository['repo_owner'],
+                    'repo_name'     => $repository['repo_name'],
+                    'branch'        => $repository['branch'],
+                    'error_message' => 'Failed to download repository archive',
+                ));
 
-        // Update status to show we're comparing (before incremental sync attempt).
-        $this->update_deployment_status($deployment_id, 'comparing');
-
-        $use_incremental = false;
-        $sync_result     = null;
-        $base_commit     = $repository['last_commit_hash'] ?? '';
-
-        // Try incremental sync if we have a previous deployment to compare against.
-        if (! empty($base_commit)) {
-            $this->logger->info($deployment_id, 'Attempting incremental sync...');
-            $sync_result = $this->sync_incremental(
-                $github_api,
-                $repository['repo_owner'],
-                $repository['repo_name'],
-                $base_commit,
-                $commit_hash,
-                $temp_dir,
-                $deployment_id
-            );
-
-            if (false !== $sync_result) {
-                $use_incremental = true;
-                $this->logger->info($deployment_id, 'Incremental sync completed', $sync_result);
+                return array(
+                    'success'       => false,
+                    'message'       => 'Failed to download repository archive.',
+                    'deployment_id' => $deployment_id,
+                );
             }
-        }
-
-        // Fallback: full archive download + extraction.
-        if (! $use_incremental) {
-            $archive_path = $temp_dir . '/archive.zip';
-
-            $this->logger->info($deployment_id, 'Downloading full repository archive...');
+        } else {
+            // No backup needed — download only.
+            $this->logger->info($deployment_id, 'Downloading repository archive (no backup)...');
 
             if (! $github_api->download_archive(
                 $repository['repo_owner'],
@@ -300,9 +295,47 @@ class Deployment_Manager
                     'deployment_id' => $deployment_id,
                 );
             }
+        }
 
-            // Extract archive using memory-safe entry-by-entry extraction (PERF-01).
-            $this->logger->info($deployment_id, 'Extracting archive...');
+        // Attempt incremental sync (PERF-02).
+        $use_incremental = false;
+        $sync_result     = null;
+        $base_commit     = $repository['last_commit_hash'] ?? '';
+
+        if (! empty($base_commit)) {
+            $this->update_deployment_status($deployment_id, 'comparing');
+            $this->logger->info($deployment_id, 'Attempting incremental sync...');
+
+            $sync_result = $this->sync_incremental(
+                $github_api,
+                $repository['repo_owner'],
+                $repository['repo_name'],
+                $base_commit,
+                $commit_hash,
+                $temp_dir,
+                $deployment_id
+            );
+
+            if (false !== $sync_result) {
+                $use_incremental = true;
+                $this->logger->info($deployment_id, 'Incremental sync completed', $sync_result);
+            }
+        }
+
+        // Extract full archive if incremental sync was not used.
+        if (! $use_incremental) {
+            if (! file_exists($archive_path)) {
+                $this->logger->error($deployment_id, 'Archive file not found');
+                $this->update_deployment_status($deployment_id, 'failed', 'Archive file not found');
+
+                return array(
+                    'success'       => false,
+                    'message'       => 'Archive file not found.',
+                    'deployment_id' => $deployment_id,
+                );
+            }
+
+            $this->logger->info($deployment_id, 'Extracting archive (memory-safe)...');
 
             if (! $this->extract_to_entry_by_entry($archive_path, $temp_dir)) {
                 $this->logger->error($deployment_id, 'Failed to extract archive');
@@ -315,13 +348,10 @@ class Deployment_Manager
                 );
             }
 
-            // Clean up archive file immediately.
             @unlink($archive_path);
         }
 
         // Find extracted/synced directory.
-        // For incremental sync, files are directly in $temp_dir.
-        // For full archive, files are in a subdirectory (GitHub structure: owner-repo-sha/).
         $extracted_dir = $use_incremental ? $temp_dir : $this->find_extracted_directory($temp_dir);
 
         if (! $extracted_dir) {
@@ -1104,6 +1134,132 @@ class Deployment_Manager
             'added'    => count($added),
             'modified' => count($modified),
             'removed'  => count($removed),
+        );
+    }
+
+    /**
+     * Run backup creation and archive download concurrently using curl_multi.
+     *
+     * Overlaps local backup I/O (disk write) with HTTP download (network I/O)
+     * to reduce total pipeline time. Uses curl_multi for true concurrent HTTP
+     * while backup runs during the non-blocking exec window.
+     *
+     * The concurrency model:
+     * 1. Initialize curl_multi with the archive download
+     * 2. Start the download (non-blocking)
+     * 3. Create backup while download is in progress
+     * 4. Wait for download to complete
+     *
+     * Falls back to sequential execution if curl_multi fails to initialize.
+     *
+     * @param Backup_Manager $backup_manager Backup manager instance.
+     * @param GitHub_API     $github_api     GitHub API instance.
+     * @param string         $plugin_path    Path to plugin directory.
+     * @param string         $commit_hash    Commit hash for backup naming.
+     * @param int            $repository_id  Repository ID.
+     * @param string         $owner          GitHub repo owner.
+     * @param string         $repo           GitHub repo name.
+     * @param string         $branch         GitHub branch.
+     * @param string         $archive_path   Path to save the archive.
+     * @param int            $deployment_id  Deployment ID for logging.
+     * @return array Result with keys: backup (array|false), download (bool).
+     */
+    private function concurrent_backup_and_download(
+        Backup_Manager $backup_manager,
+        GitHub_API $github_api,
+        string $plugin_path,
+        string $commit_hash,
+        int $repository_id,
+        string $owner,
+        string $repo,
+        string $branch,
+        string $archive_path,
+        int $deployment_id
+    ): array {
+        // Strategy: Use curl_multi to overlap the GitHub archive download
+        // (HTTP I/O) with the backup creation (local disk I/O).
+        //
+        // The backup writes a ZIP file from the plugin directory — this is
+        // CPU + disk I/O. The download fetches from GitHub — this is network I/O.
+        // Running them concurrently means the download's network latency overlaps
+        // with the backup's disk writes.
+
+        $backup_result = false;
+        $download_url  = $github_api->get_archive_url($owner, $repo, $branch);
+
+        if (! $download_url) {
+            // Fallback: sequential.
+            $backup_result = $backup_manager->create_backup($plugin_path, $commit_hash, $repository_id);
+            return array('backup' => $backup_result, 'download' => false);
+        }
+
+        // Initialize curl handles.
+        $download_ch = curl_init($download_url);
+        $fp          = @fopen($archive_path, 'wb');
+
+        if (! $fp) {
+            // Cannot write to archive path — fallback to sequential.
+            curl_close($download_ch);
+            $backup_result = $backup_manager->create_backup($plugin_path, $commit_hash, $repository_id);
+            return array('backup' => $backup_result, 'download' => false);
+        }
+
+        curl_setopt_array($download_ch, array(
+            CURLOPT_FILE            => $fp,
+            CURLOPT_FOLLOWLOCATION  => true,
+            CURLOPT_MAXREDIRS       => 3,
+            CURLOPT_TIMEOUT         => 300,
+            CURLOPT_CONNECTTIMEOUT  => 30,
+            CURLOPT_HTTPHEADER      => array(
+                'Authorization: token ' . $github_api->get_token_for_curl(),
+                'Accept: application/vnd.github.v3+json',
+                'User-Agent: Devsroom-AutoDeploy/' . DEVSROOM_AUTODEPLOY_VERSION,
+            ),
+        ));
+
+        // Create curl_multi handle and add download.
+        $mh = curl_multi_init();
+        curl_multi_add_handle($mh, $download_ch);
+
+        // Start the download.
+        $running = null;
+        curl_multi_exec($mh, $running);
+
+        // While download is in progress, create the backup (local I/O).
+        // This overlaps because curl_multi_exec is non-blocking when called.
+        $backup_result = $backup_manager->create_backup($plugin_path, $commit_hash, $repository_id);
+
+        // Now wait for the download to complete.
+        do {
+            $status = curl_multi_exec($mh, $running);
+            if ($running) {
+                // Block for activity on the curl connections.
+                curl_multi_select($mh, 1);
+            }
+        } while ($running && CURLM_CALL_MULTI_PERFORM === $status);
+
+        // Check download result.
+        $download_error  = curl_error($download_ch);
+        $download_status = curl_getinfo($download_ch, CURLINFO_HTTP_CODE);
+        $download_ok     = (200 === $download_status) && empty($download_error);
+
+        // Cleanup curl.
+        curl_multi_remove_handle($mh, $download_ch);
+        curl_multi_close($mh);
+        curl_close($download_ch);
+        fclose($fp);
+
+        if (! $download_ok) {
+            @unlink($archive_path);
+            $this->logger->warning($deployment_id, 'Concurrent download failed', array(
+                'http_code' => $download_status,
+                'error'     => $download_error,
+            ));
+        }
+
+        return array(
+            'backup'   => $backup_result,
+            'download' => $download_ok,
         );
     }
 

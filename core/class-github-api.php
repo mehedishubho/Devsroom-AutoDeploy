@@ -54,6 +54,19 @@ class GitHub_API
     }
 
     /**
+     * Get the access token for use in curl headers.
+     *
+     * Used by concurrent_backup_and_download() which bypasses wp_remote_get
+     * to use curl_multi directly for concurrent HTTP.
+     *
+     * @return string Access token.
+     */
+    public function get_token_for_curl(): string
+    {
+        return $this->token;
+    }
+
+    /**
      * Get authenticated user info.
      *
      * @return array|false User info or false on failure.
