@@ -30,6 +30,9 @@ if (! defined('ABSPATH')) {
     if (isset($_GET['deployed_activated'])) {
         echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Deployment and activation completed successfully.', 'devsroom-autodeploy') . '</p></div>';
     }
+    if (isset($_GET['force_unlocked'])) {
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Deployment lock cleared.', 'devsroom-autodeploy') . '</p></div>';
+    }
     if (isset($_GET['error'])) {
         $error_messages = array(
             'missing_fields' => __('Please fill in all required fields.', 'devsroom-autodeploy'),
@@ -273,6 +276,23 @@ if (! defined('ABSPATH')) {
                                                 <?php esc_html_e('Delete', 'devsroom-autodeploy'); ?>
                                             </button>
                                         </form>
+                                        <?php if (! empty($repo['locked_at'])) : ?>
+                                            <span class="devsroom-lock-indicator" title="<?php echo esc_attr(sprintf(
+                                                /* translators: %s: lock timestamp */
+                                                __('Locked since %s', 'devsroom-autodeploy'),
+                                                esc_attr($repo['locked_at'])
+                                            )); ?>">
+                                                &#128274;
+                                            </span>
+                                            <a href="<?php echo esc_url(wp_nonce_url(
+                                                admin_url('admin.php?page=devsroom-autodeploy-repositories&action=force_unlock&repository_id=' . $repo['id']),
+                                                'devsroom_autodeploy_force_unlock_' . $repo['id']
+                                            )); ?>"
+                                               class="button button-small"
+                                               onclick="return confirm('<?php esc_attr_e('Are you sure you want to force-unlock this repository?', 'devsroom-autodeploy'); ?>');">
+                                                <?php esc_html_e('Unlock', 'devsroom-autodeploy'); ?>
+                                            </a>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

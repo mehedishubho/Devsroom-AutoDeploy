@@ -29,6 +29,9 @@ class Repository_Manager
      */
     public function render(): void
     {
+        // Handle force-unlock action (GET request with nonce).
+        $this->handle_force_unlock();
+
         // Handle form submissions.
         $this->handle_form_submissions();
 
@@ -78,6 +81,71 @@ class Repository_Manager
         if (isset($_POST['devsroom_autodeploy_deploy_activate'])) {
             $this->trigger_deployment(true);
         }
+    }
+
+    /**
+     * Handle force-unlock GET action.
+     *
+     * Processes the force-unlock request when the admin clicks the unlock button.
+     *
+     * @return void
+     */
+    private function handle_force_unlock(): void
+    {
+        if (! isset($_GET['action']) || 'force_unlock' !== $_GET['action']) {
+            return;
+        }
+
+        $repository_id = (int) ($_GET['repository_id'] ?? 0);
+
+        if ($repository_id <= 0) {
+            return;
+        }
+
+        // Verify nonce.
+        $nonce = $_GET['nonce'] ?? '';
+        if (! wp_verify_nonce($nonce, 'devsroom_autodeploy_force_unlock_' . $repository_id)) {
+            wp_die(
+                esc_html__('Security check failed.', 'devsroom-autodeploy'),
+                esc_html__('Error', 'devsroom-autodeploy'),
+                array('response' => 403)
+            );
+        }
+
+        // Check capability.
+        if (! current_user_can('manage_options')) {
+            wp_die(
+                esc_html__('You do not have permission to perform this action.', 'devsroom-autodeploy'),
+                esc_html__('Error', 'devsroom-autodeploy'),
+                array('response' => 403)
+            );
+        }
+
+        $this->force_unlock($repository_id);
+    }
+
+    /**
+     * Force-unlock a repository's deployment lock.
+     *
+     * @param int $repository_id Repository ID.
+     * @return void
+     */
+    private function force_unlock(int $repository_id): void
+    {
+        $deployment_manager = Deployment_Manager::get_instance();
+        $deployment_manager->release_lock($repository_id);
+
+        // Log the force unlock action.
+        if (function_exists('error_log')) {
+            error_log(sprintf(
+                'Devsoom AutoDeploy: Force unlock executed for repository #%d by user #%d',
+                $repository_id,
+                get_current_user_id()
+            ));
+        }
+
+        wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&force_unlocked=true'));
+        exit;
     }
 
     /**
