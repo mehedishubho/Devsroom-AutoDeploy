@@ -394,7 +394,7 @@ class Deployment_Manager
 
         // Deploy files using atomic swap.
         // Instead of deleting the live plugin then copying (dangerous window where a
-        // failure leaves the site broken), we move the old dir aside and rename the
+        // failure leaves the site broken), we move the old dir aside and copy the
         // new dir into place. The old dir is preserved for rollback until verification passes.
         $this->logger->info($deployment_id, 'Deploying files via atomic swap...');
 
@@ -403,8 +403,14 @@ class Deployment_Manager
 
         // Step 1: Move current plugin aside (if exists).
         if ($plugin_exists) {
+            // Clean up any leftover .old from a previous failed deploy.
+            if (is_dir($old_path)) {
+                $this->cleanup_dir($old_path);
+            }
+
             if (! @rename($plugin_path, $old_path)) {
-                // Windows fallback: copy then delete.
+                // rename() failed (common on Windows) — use copy + delete.
+                $this->logger->info($deployment_id, 'rename() failed, using copy fallback for .old');
                 if (! $this->copy_directory($plugin_path, $old_path)) {
                     return array(
                         'success'       => false,
@@ -416,24 +422,48 @@ class Deployment_Manager
             }
         }
 
-        // Step 2: Move new plugin into place.
-        if (! @rename($extracted_dir, $plugin_path)) {
-            // Windows fallback: copy then delete.
-            if (! $this->copy_directory($extracted_dir, $plugin_path)) {
-                // Restore old plugin.
-                if ($plugin_exists) {
-                    if (! @rename($old_path, $plugin_path)) {
-                        $this->copy_directory($old_path, $plugin_path);
-                        $this->cleanup_dir($old_path);
-                    }
+        // Step 2: Copy new plugin into place.
+        // We always use copy_directory() instead of rename() because rename() is
+        // unreliable on Windows (fails across volumes, fails if files are locked by
+        // web server, can leave partial state). copy_directory() is deterministic.
+        $this->logger->info($deployment_id, 'Copying new files to plugin directory', array(
+            'source' => $extracted_dir,
+            'dest'   => $plugin_path,
+        ));
+
+        if (! $this->copy_directory($extracted_dir, $plugin_path)) {
+            $this->logger->error($deployment_id, 'Failed to copy new plugin files');
+
+            // Restore old plugin.
+            if ($plugin_exists && is_dir($old_path)) {
+                if (! @rename($old_path, $plugin_path)) {
+                    $this->copy_directory($old_path, $plugin_path);
+                    $this->cleanup_dir($old_path);
                 }
-                return array(
-                    'success'       => false,
-                    'message'       => 'Could not deploy new plugin files.',
-                    'deployment_id' => $deployment_id,
-                );
             }
-            $this->cleanup_dir($extracted_dir);
+            return array(
+                'success'       => false,
+                'message'       => 'Could not deploy new plugin files.',
+                'deployment_id' => $deployment_id,
+            );
+        }
+
+        // Verify the copy actually produced files.
+        if (! is_dir($plugin_path) || 0 === count(glob($plugin_path . '/*'))) {
+            $this->logger->error($deployment_id, 'Plugin directory is empty after copy');
+
+            // Restore old plugin.
+            if ($plugin_exists && is_dir($old_path)) {
+                if (! @rename($old_path, $plugin_path)) {
+                    $this->copy_directory($old_path, $plugin_path);
+                    $this->cleanup_dir($old_path);
+                }
+            }
+            return array(
+                'success'       => false,
+                'message'       => 'Plugin directory is empty after file copy.',
+                'deployment_id' => $deployment_id,
+            );
         }
 
         // Step 3: Temp directory will be cleaned up by the finally block.
@@ -1302,6 +1332,34 @@ class Deployment_Manager
     }
 
     /**
+     * Find the main plugin file by scanning for a "Plugin Name:" header.
+     *
+     * Some GitHub repositories use a main filename that doesn't match the
+     * plugin slug (e.g., the repo is "my-wp-plugin" but the main file is
+     * "my-plugin.php"). This method scans root-level PHP files for a valid
+     * WordPress plugin header.
+     *
+     * @param string $plugin_path Path to the plugin directory.
+     * @return string|false Full path to main plugin file, or false if not found.
+     */
+    private function find_plugin_main_file(string $plugin_path): string|false
+    {
+        $files = glob($plugin_path . '/*.php');
+        if (! $files) {
+            return false;
+        }
+
+        foreach ($files as $file) {
+            $header = file_get_contents($file, false, null, 0, 8192);
+            if ($header && preg_match('/^[\s\/*#@]*Plugin Name:/mi', $header)) {
+                return $file;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Verify a deployed plugin is loadable.
      *
      * Runs a series of checks to confirm the plugin directory is valid after an
@@ -1317,14 +1375,22 @@ class Deployment_Manager
         $checks = array();
 
         // Check 1: Main plugin file exists.
+        // Try the expected filename first ({slug}.php), then scan for any PHP file
+        // with a "Plugin Name:" header (some repos use a different main filename).
         $main_file = $plugin_path . '/' . $plugin_slug . '.php';
+
         if (! file_exists($main_file)) {
-            $checks['file_exists'] = false;
-            return array(
-                'success' => false,
-                'message' => 'Main plugin file not found',
-                'checks'  => $checks,
-            );
+            // Expected file not found — scan for any PHP file with plugin header.
+            $main_file = $this->find_plugin_main_file($plugin_path);
+
+            if (! $main_file) {
+                $checks['file_exists'] = false;
+                return array(
+                    'success' => false,
+                    'message' => 'Main plugin file not found (expected: ' . $plugin_slug . '.php)',
+                    'checks'  => $checks,
+                );
+            }
         }
         $checks['file_exists'] = true;
 
