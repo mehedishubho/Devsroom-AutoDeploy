@@ -44,8 +44,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Memory-safe ZIP extraction + GitHub Compare API method (PERF-01, PERF-02 foundation)
-- [ ] 02-02-PLAN.md — Incremental file sync via Compare API + concurrent backup/download via curl_multi (PERF-02, PERF-03)
+- [x] 02-01-PLAN.md — Memory-safe ZIP extraction + GitHub Compare API method (PERF-01, PERF-02 foundation)
+- [x] 02-02-PLAN.md — Incremental file sync via Compare API + concurrent backup/download via curl_multi (PERF-02, PERF-03)
 
 ## Progress
 
