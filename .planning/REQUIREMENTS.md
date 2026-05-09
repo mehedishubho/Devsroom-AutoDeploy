@@ -49,19 +49,19 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAFETY-01 | — | Pending |
-| SAFETY-02 | — | Pending |
-| SAFETY-03 | — | Pending |
-| SAFETY-04 | — | Pending |
-| SAFETY-05 | — | Pending |
-| PERF-01 | — | Pending |
-| PERF-02 | — | Pending |
-| PERF-03 | — | Pending |
+| SAFETY-01 | Phase 1 — Safety Foundation | Pending |
+| SAFETY-02 | Phase 1 — Safety Foundation | Pending |
+| SAFETY-03 | Phase 1 — Safety Foundation | Pending |
+| SAFETY-04 | Phase 1 — Safety Foundation | Pending |
+| SAFETY-05 | Phase 1 — Safety Foundation | Pending |
+| PERF-01 | Phase 2 — Performance | Pending |
+| PERF-02 | Phase 2 — Performance | Pending |
+| PERF-03 | Phase 2 — Performance | Pending |
 
 **Coverage:**
 - v2.0 requirements: 8 total
-- Mapped to phases: 0
-- Unmapped: 8 ⚠️ (roadmap pending)
+- Mapped to phases: 8
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-10*

@@ -2,52 +2,60 @@
 
 ## Project Reference
 
-**Core Value:** Deployments must be fast AND safe — every deploy should complete quickly with zero risk of breaking a live site, even when managing 20+ plugins.
+See: .planning/PROJECT.md (updated 2026-05-10)
 
-**Current Focus:** v2.0 Pipeline Optimization — atomic swaps, incremental sync, rollback, queue support.
+**Core value:** Deployments must be fast AND safe — every deploy should complete quickly with zero risk of breaking a live site, even when managing 20+ plugins.
+**Current focus:** Phase 1 — Safety Foundation
 
 ## Current Position
 
-**Phase:** Not started (defining requirements)
-**Plan:** —
-**Status:** Defining requirements
+Phase: 1 of 2 (Safety Foundation)
+Plan: 0 of 3 in current phase
+Status: Ready to plan
+Last activity: 2026-05-10 — Roadmap created for v2.0 Pipeline Optimization
 
-## Progress
+Progress: [░░░░░░░░░░] 0%
 
-```
-[██░░░░░░░░] 15%
-```
+## Performance Metrics
 
-| Milestone | Status |
-|-----------|--------|
-| Project initialization | ✓ Complete |
-| Codebase mapping | ✓ Complete |
-| Feature research | ✓ Complete |
-| Pitfall research | ✓ Complete |
-| Milestone v2.0 started | ✓ Complete |
-| Requirements definition | ◆ In progress |
-| Roadmap creation | ○ Pending |
-| Phase execution | ○ Not started |
+**Velocity:**
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: 0 hours
 
-## Recent Decisions
+**By Phase:**
 
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| Incremental sync via GitHub Compare API | Avoids full downloads; GitHub API supports comparing commits and returning file diffs | Pending |
-| Atomic swap via temp dir + rename | Rename is instant and atomic on POSIX; fallback to copy on Windows | Pending |
-| Deployment queue via custom DB table | Avoids PHP process-level locking; survives across requests | Pending |
-| Native PHP file ops instead of WP_Filesystem | WP_Filesystem adds abstraction overhead; direct PHP is faster and we control the environment | Pending |
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
 
-## Pending Todos
+**Recent Trend:**
+- Last 5 plans: —
+- Trend: —
 
-None captured yet.
+*Updated after each plan completion*
 
-## Blockers/Concerns
+## Accumulated Context
 
-None.
+### Decisions
+
+Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting current work:
+
+- Roadmap: 2-phase structure — Safety Foundation (5 requirements) then Performance (3 requirements)
+- Phase 1 includes all SAFETY requirements as one coherent delivery (locking, atomic swap, verification, rollback, error recovery)
+- Phase 2 depends on Phase 1 because PERF-02 uses SAFETY-02's atomic swap temp directory
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+None yet.
 
 ## Session Continuity
 
 Last session: 2026-05-10
-Stopped at: Milestone v2.0 started, proceeding to requirements definition
-Resume file: N/A
+Stopped at: Roadmap created, ready to plan Phase 1
+Resume file: None
