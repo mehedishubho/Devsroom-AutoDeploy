@@ -8,6 +8,22 @@ A WordPress plugin that automates deploying plugins from GitHub repositories to 
 
 Deployments must be fast AND safe — every deploy should complete quickly with zero risk of breaking a live site, even when managing 20+ plugins.
 
+## Current Milestone: v2.0 Pipeline Optimization
+
+**Goal:** Transform the working sequential deployment pipeline into a production-grade system that handles 20+ plugins safely and efficiently.
+
+**Target features:**
+- Deployment locking (per-plugin concurrency control)
+- Atomic file swaps (temp dir + rename)
+- Post-deploy verification (syntax check, plugin file validation)
+- Automatic rollback on failure
+- Optimized file copy operations (native PHP)
+- Incremental file deployment (GitHub Compare API)
+- Progress tracking with real-time status
+- Deployment queue system (20+ plugins)
+- Parallel pipeline steps (backup + download concurrent)
+- Better error recovery (cleanup partial states)
+
 ## Requirements
 
 ### Validated
@@ -99,4 +115,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-10 after initialization*
+*Last updated: 2026-05-10 after starting milestone v2.0 Pipeline Optimization*
