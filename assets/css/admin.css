@@ -4,6 +4,10 @@
  * @package Devsroom_AutoDeploy
  */
 
+/* ============================================
+   Design Tokens
+   ============================================ */
+
 .devsroom-autodeploy {
   --ds-space-1: 8px;
   --ds-space-2: 12px;
@@ -19,20 +23,49 @@
   --ds-text: #172033;
   --ds-muted: #5b6474;
   --ds-primary: #1565c0;
+  --ds-primary-hover: #0d47a1;
+  --ds-primary-light: #e3f2fd;
   --ds-success: #1f8f49;
+  --ds-success-light: #e8f7ee;
   --ds-warning: #9e630a;
+  --ds-warning-light: #fff6e5;
   --ds-danger: #b42318;
+  --ds-danger-light: #feebee;
   --ds-info: #0f7490;
+  --ds-info-light: #e6f6fb;
   --ds-shadow: 0 8px 18px rgba(16, 24, 40, 0.06);
+  --ds-shadow-sm: 0 2px 6px rgba(16, 24, 40, 0.04);
+  --ds-transition: 0.2s ease;
   color: var(--ds-text);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
+/* ============================================
+   Page Header
+   ============================================ */
+
 .devsroom-autodeploy .devsroom-page-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
   margin: 0 0 var(--ds-space-4);
   font-size: 28px;
   font-weight: 700;
   line-height: 1.2;
+  color: var(--ds-text);
 }
+
+.devsroom-autodeploy .devsroom-page-head .dashicons {
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+  color: var(--ds-primary);
+}
+
+/* ============================================
+   Sections & Panels
+   ============================================ */
 
 .devsroom-autodeploy .devsroom-section {
   margin-bottom: var(--ds-space-4);
@@ -47,8 +80,25 @@
   border: 1px solid var(--ds-border);
   border-radius: var(--ds-radius);
   box-shadow: var(--ds-shadow);
-  padding: 20px var(--ds-space-4);
+  padding: var(--ds-space-4);
 }
+
+.devsroom-autodeploy .devsroom-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--ds-space-3);
+  padding-bottom: var(--ds-space-3);
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.devsroom-autodeploy .devsroom-panel-header h2 {
+  margin: 0;
+}
+
+/* ============================================
+   Toolbar
+   ============================================ */
 
 .devsroom-autodeploy .devsroom-toolbar {
   display: flex;
@@ -57,14 +107,13 @@
   align-items: center;
 }
 
-.devsroom-autodeploy .devsroom-table-wrap {
-  margin-top: var(--ds-space-4);
-  overflow-x: auto;
+.devsroom-autodeploy .devsroom-toolbar-right {
+  margin-left: auto;
 }
 
-.devsroom-autodeploy .notice {
-  margin: 0 0 var(--ds-space-4);
-}
+/* ============================================
+   Dashboard Content
+   ============================================ */
 
 .devsroom-autodeploy .devsroom-dashboard-content {
   display: flex;
@@ -72,7 +121,10 @@
   gap: var(--ds-space-4);
 }
 
-/* Stats Grid */
+/* ============================================
+   Stats Grid
+   ============================================ */
+
 .devsroom-autodeploy .devsroom-autodeploy-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(180px, 1fr));
@@ -81,19 +133,19 @@
 }
 
 .devsroom-autodeploy .devsroom-autodeploy-stat-card {
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  background: var(--ds-surface);
   border: 1px solid var(--ds-border);
   border-top: 3px solid var(--ds-primary);
   border-radius: var(--ds-radius);
-  box-shadow: var(--ds-shadow);
-  padding: 20px var(--ds-space-4);
+  box-shadow: var(--ds-shadow-sm);
+  padding: var(--ds-space-4);
   text-align: center;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform var(--ds-transition), box-shadow var(--ds-transition);
 }
 
 .devsroom-autodeploy .devsroom-autodeploy-stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(16, 24, 40, 0.08);
+  box-shadow: var(--ds-shadow);
 }
 
 .devsroom-autodeploy .devsroom-autodeploy-stat-card h3 {
@@ -102,6 +154,7 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--ds-muted);
+  text-transform: uppercase;
 }
 
 .devsroom-autodeploy .devsroom-autodeploy-stat-card .stat-value {
@@ -111,53 +164,135 @@
   color: var(--ds-primary);
 }
 
-/* Panels and headings */
+.devsroom-autodeploy .devsroom-autodeploy-stat-card .stat-icon {
+  font-size: 20px;
+  color: var(--ds-primary);
+  margin-bottom: var(--ds-space-1);
+}
+
+.devsroom-autodeploy .devsroom-autodeploy-stat-card:nth-child(2) {
+  border-top-color: var(--ds-success);
+}
+.devsroom-autodeploy .devsroom-autodeploy-stat-card:nth-child(2) .stat-value {
+  color: var(--ds-success);
+}
+
+.devsroom-autodeploy .devsroom-autodeploy-stat-card:nth-child(3) {
+  border-top-color: var(--ds-info);
+}
+.devsroom-autodeploy .devsroom-autodeploy-stat-card:nth-child(3) .stat-value {
+  color: var(--ds-info);
+}
+
+.devsroom-autodeploy .devsroom-autodeploy-stat-card:nth-child(4) {
+  border-top-color: var(--ds-warning);
+}
+.devsroom-autodeploy .devsroom-autodeploy-stat-card:nth-child(4) .stat-value {
+  color: var(--ds-warning);
+}
+
+/* ============================================
+   Headings
+   ============================================ */
+
 .devsroom-autodeploy h2 {
   margin: 0 0 var(--ds-space-3);
   font-size: 20px;
+  font-weight: 600;
   line-height: 1.3;
 }
 
 .devsroom-autodeploy h3 {
   margin: 0 0 var(--ds-space-3);
   font-size: 16px;
+  font-weight: 600;
   line-height: 1.3;
 }
 
-/* Status and update badges */
+/* ============================================
+   Status Badges
+   ============================================ */
+
 .devsroom-autodeploy .status-badge,
 .devsroom-autodeploy .update-available-badge,
 .devsroom-autodeploy .no-update-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .devsroom-autodeploy .status-success,
 .devsroom-autodeploy .status-active,
 .devsroom-autodeploy .update-available-badge {
-  background: #e8f7ee;
+  background: var(--ds-success-light);
   color: var(--ds-success);
 }
 
-.devsroom-autodeploy .status-error {
-  background: #feebee;
+.devsroom-autodeploy .status-error,
+.devsroom-autodeploy .status-failed {
+  background: var(--ds-danger-light);
   color: var(--ds-danger);
 }
 
 .devsroom-autodeploy .status-warning,
-.devsroom-autodeploy .status-paused {
-  background: #fff6e5;
+.devsroom-autodeploy .status-pending {
+  background: var(--ds-warning-light);
   color: var(--ds-warning);
 }
 
-.devsroom-autodeploy .status-info {
-  background: #e6f6fb;
+.devsroom-autodeploy .status-info,
+.devsroom-autodeploy .status-scanning,
+.devsroom-autodeploy .status-backing_up {
+  background: var(--ds-info-light);
   color: var(--ds-info);
+}
+
+/* v2.0 pipeline statuses */
+.devsroom-autodeploy .status-locking {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.devsroom-autodeploy .status-comparing {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.devsroom-autodeploy .status-downloading {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.devsroom-autodeploy .status-extracting {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.devsroom-autodeploy .status-deploying {
+  background: #fce7f3;
+  color: #db2777;
+}
+
+.devsroom-autodeploy .status-verifying {
+  background: #ccfbf1;
+  color: #0d9488;
+}
+
+.devsroom-autodeploy .status-rolling_back {
+  background: var(--ds-danger-light);
+  color: var(--ds-danger);
+}
+
+.devsroom-autodeploy .status-cancelled {
+  background: #f1f5f9;
+  color: #64748b;
 }
 
 .devsroom-autodeploy .no-update-badge {
@@ -165,28 +300,34 @@
   color: #465062;
 }
 
-/* Log levels */
+/* ============================================
+   Log Levels
+   ============================================ */
+
 .devsroom-autodeploy .log-level {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   padding: 3px 8px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 
 .devsroom-autodeploy .log-info {
-  background: #e6f6fb;
+  background: var(--ds-info-light);
   color: var(--ds-info);
 }
 
 .devsroom-autodeploy .log-warning {
-  background: #fff6e5;
+  background: var(--ds-warning-light);
   color: var(--ds-warning);
 }
 
 .devsroom-autodeploy .log-error {
-  background: #feebee;
+  background: var(--ds-danger-light);
   color: var(--ds-danger);
 }
 
@@ -200,7 +341,15 @@
   font-weight: 600;
 }
 
-/* Tables */
+/* ============================================
+   Tables
+   ============================================ */
+
+.devsroom-autodeploy .devsroom-table-wrap {
+  margin-top: var(--ds-space-3);
+  overflow-x: auto;
+}
+
 .devsroom-autodeploy .wp-list-table {
   border: 1px solid var(--ds-border);
   border-radius: var(--ds-radius-sm);
@@ -210,21 +359,37 @@
 .devsroom-autodeploy .wp-list-table thead th {
   background: #f8fafc;
   color: var(--ds-text);
-  border-bottom: 1px solid var(--ds-border);
+  border-bottom: 2px solid var(--ds-border);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.devsroom-autodeploy .wp-list-table tbody tr {
+  transition: background var(--ds-transition);
 }
 
 .devsroom-autodeploy .wp-list-table tbody tr:hover td {
   background: #f8fbff;
 }
 
+.devsroom-autodeploy .wp-list-table tbody td {
+  vertical-align: middle;
+}
+
 .devsroom-autodeploy .wp-list-table code {
   background: #eef3fa;
   border-radius: 4px;
   padding: 2px 6px;
+  font-size: 12px;
   color: #183764;
 }
 
-/* Forms */
+/* ============================================
+   Forms
+   ============================================ */
+
 .devsroom-autodeploy .devsroom-form .form-table {
   margin-top: var(--ds-space-2);
 }
@@ -233,6 +398,8 @@
   width: 220px;
   padding-top: var(--ds-space-3);
   color: var(--ds-text);
+  font-weight: 600;
+  vertical-align: top;
 }
 
 .devsroom-autodeploy .form-table td {
@@ -246,11 +413,23 @@
 .devsroom-autodeploy .form-table td select {
   width: 360px;
   max-width: 100%;
+  border-radius: var(--ds-radius-sm);
+}
+
+.devsroom-autodeploy .form-table td input[type="text"]:focus,
+.devsroom-autodeploy .form-table td input[type="email"]:focus,
+.devsroom-autodeploy .form-table td input[type="password"]:focus,
+.devsroom-autodeploy .form-table td input[type="number"]:focus,
+.devsroom-autodeploy .form-table td select:focus {
+  border-color: var(--ds-primary);
+  box-shadow: 0 0 0 2px var(--ds-primary-light);
+  outline: none;
 }
 
 .devsroom-autodeploy .form-table .description {
   margin-top: 6px;
   color: var(--ds-muted);
+  font-size: 13px;
 }
 
 .devsroom-autodeploy .submit {
@@ -258,10 +437,23 @@
   padding: 0;
 }
 
+.devsroom-autodeploy .devsroom-form-actions {
+  display: flex;
+  gap: var(--ds-space-2);
+  align-items: center;
+  margin-top: var(--ds-space-4);
+  padding-top: var(--ds-space-3);
+  border-top: 1px solid var(--ds-border);
+}
+
+/* ============================================
+   Inline Forms & Buttons
+   ============================================ */
+
 .devsroom-autodeploy .devsroom-inline-forms {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--ds-space-1);
+  gap: 6px;
   align-items: center;
 }
 
@@ -275,20 +467,51 @@
   height: 30px;
   line-height: 28px;
   padding: 0 10px;
+  font-size: 12px;
 }
 
-/* Settings tabs */
+.devsroom-autodeploy .button-primary {
+  background: var(--ds-primary);
+  border-color: var(--ds-primary-hover);
+}
+
+.devsroom-autodeploy .button-primary:hover {
+  background: var(--ds-primary-hover);
+}
+
+.devsroom-autodeploy .button-danger {
+  color: var(--ds-danger);
+  border-color: var(--ds-danger);
+}
+
+.devsroom-autodeploy .button-danger:hover {
+  background: var(--ds-danger-light);
+  color: var(--ds-danger);
+}
+
+/* ============================================
+   Settings Tabs
+   ============================================ */
+
 .devsroom-autodeploy .nav-tab-wrapper {
   margin: 0 0 var(--ds-space-4);
-  border-bottom: 1px solid var(--ds-border);
+  border-bottom: 2px solid var(--ds-border);
 }
 
 .devsroom-autodeploy .nav-tab {
   border: 1px solid transparent;
+  border-bottom: none;
   border-radius: var(--ds-radius-sm) var(--ds-radius-sm) 0 0;
-  padding: 10px 14px;
+  padding: 10px 16px;
   font-weight: 600;
+  font-size: 14px;
   color: var(--ds-muted);
+  transition: color var(--ds-transition), background var(--ds-transition);
+}
+
+.devsroom-autodeploy .nav-tab:hover {
+  color: var(--ds-primary);
+  background: #f8fafc;
 }
 
 .devsroom-autodeploy .nav-tab-active,
@@ -298,6 +521,8 @@
   color: var(--ds-primary);
   background: var(--ds-surface);
   border-color: var(--ds-border) var(--ds-border) var(--ds-surface);
+  border-bottom-width: 2px;
+  margin-bottom: -2px;
 }
 
 .devsroom-autodeploy .tab-content {
@@ -322,11 +547,425 @@
   margin-top: var(--ds-space-3);
 }
 
-/* Utility */
+/* ============================================
+   Empty States
+   ============================================ */
+
+.devsroom-autodeploy .ds-empty-state {
+  text-align: center;
+  padding: var(--ds-space-6) var(--ds-space-4);
+  color: var(--ds-muted);
+}
+
+.devsroom-autodeploy .ds-empty-state .dashicons {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #c3c7cf;
+  margin-bottom: var(--ds-space-3);
+}
+
+.devsroom-autodeploy .ds-empty-state h3 {
+  color: var(--ds-text);
+  font-size: 18px;
+  margin-bottom: var(--ds-space-2);
+}
+
+.devsroom-autodeploy .ds-empty-state p {
+  font-size: 14px;
+  margin-bottom: var(--ds-space-3);
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ============================================
+   Pipeline Visualization
+   ============================================ */
+
+.ds-pipeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: var(--ds-space-3) 0;
+  overflow-x: auto;
+}
+
+.ds-pipeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  min-width: 100px;
+  position: relative;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.ds-pipeline-step--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ds-pipeline-step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: #edf0f4;
+  color: #8b95a5;
+  border: 2px solid #d8dee8;
+  position: relative;
+  z-index: 1;
+  transition: all var(--ds-transition);
+}
+
+.ds-pipeline-step--success .ds-pipeline-step-icon {
+  background: var(--ds-success-light);
+  color: var(--ds-success);
+  border-color: var(--ds-success);
+}
+
+.ds-pipeline-step--active .ds-pipeline-step-icon {
+  background: var(--ds-primary-light);
+  color: var(--ds-primary);
+  border-color: var(--ds-primary);
+  box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.15);
+  animation: ds-pulse 2s infinite;
+}
+
+.ds-pipeline-step--failed .ds-pipeline-step-icon {
+  background: var(--ds-danger-light);
+  color: var(--ds-danger);
+  border-color: var(--ds-danger);
+}
+
+.ds-pipeline-step--skipped .ds-pipeline-step-icon {
+  background: #f8f9fa;
+  color: #adb5bd;
+  border-color: #dee2e6;
+  opacity: 0.6;
+}
+
+@keyframes ds-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.15); }
+  50% { box-shadow: 0 0 0 8px rgba(21, 101, 192, 0.08); }
+}
+
+.ds-pipeline-step-label {
+  margin-top: var(--ds-space-1);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ds-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ds-pipeline-step--success .ds-pipeline-step-label {
+  color: var(--ds-success);
+}
+
+.ds-pipeline-step--active .ds-pipeline-step-label {
+  color: var(--ds-primary);
+}
+
+.ds-pipeline-step--failed .ds-pipeline-step-label {
+  color: var(--ds-danger);
+}
+
+.ds-pipeline-connector {
+  flex: 1;
+  height: 2px;
+  background: #d8dee8;
+  margin-top: 20px;
+  min-width: 20px;
+}
+
+.ds-pipeline-connector--success {
+  background: var(--ds-success);
+}
+
+.ds-pipeline-connector--active {
+  background: linear-gradient(90deg, var(--ds-primary), var(--ds-primary-light));
+}
+
+/* ============================================
+   Deployment Detail Cards
+   ============================================ */
+
+.ds-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--ds-space-3);
+}
+
+.ds-detail-item {
+  padding: var(--ds-space-2) 0;
+}
+
+.ds-detail-item-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ds-muted);
+  margin-bottom: 4px;
+}
+
+.ds-detail-item-value {
+  font-size: 14px;
+  color: var(--ds-text);
+  font-weight: 500;
+}
+
+.ds-detail-item-value code {
+  background: #eef3fa;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 12px;
+  color: #183764;
+}
+
+/* ============================================
+   Log Table Enhancements
+   ============================================ */
+
+.ds-log-message {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ds-log-context-toggle {
+  color: var(--ds-primary);
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: var(--ds-space-1);
+}
+
+.ds-log-context-toggle:hover {
+  text-decoration: underline;
+}
+
+.ds-log-context-row {
+  display: none;
+}
+
+.ds-log-context-row td {
+  background: #f8fafc;
+  padding: var(--ds-space-2) var(--ds-space-3);
+}
+
+.ds-log-context-json {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: var(--ds-radius-sm);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ============================================
+   Pagination
+   ============================================ */
+
+.ds-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: var(--ds-space-3) 0;
+}
+
+.ds-pagination a,
+.ds-pagination .ds-pagination-current {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: var(--ds-radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all var(--ds-transition);
+}
+
+.ds-pagination a {
+  color: var(--ds-primary);
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+}
+
+.ds-pagination a:hover {
+  background: var(--ds-primary-light);
+  border-color: var(--ds-primary);
+}
+
+.ds-pagination .ds-pagination-current {
+  background: var(--ds-primary);
+  color: #fff;
+  border: 1px solid var(--ds-primary);
+}
+
+.ds-pagination .ds-pagination-dots {
+  color: var(--ds-muted);
+  padding: 0 4px;
+}
+
+/* ============================================
+   Notices
+   ============================================ */
+
+.devsroom-autodeploy .notice {
+  margin: 0 0 var(--ds-space-3);
+  border-radius: var(--ds-radius-sm);
+}
+
+.ds-floating-notice {
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100001;
+  min-width: 300px;
+  max-width: 600px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  animation: ds-slide-down 0.3s ease;
+}
+
+@keyframes ds-slide-down {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ============================================
+   Lock Indicator
+   ============================================ */
+
+.devsroom-autodeploy .devsroom-lock-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--ds-warning-light);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--ds-warning);
+  font-weight: 600;
+}
+
+.devsroom-autodeploy .devsroom-lock-indicator .dashicons {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================
+   Back Link
+   ============================================ */
+
+.devsroom-autodeploy .ds-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ds-muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: var(--ds-space-3);
+  transition: color var(--ds-transition);
+}
+
+.devsroom-autodeploy .ds-back-link:hover {
+  color: var(--ds-primary);
+}
+
+.devsroom-autodeploy .ds-back-link .dashicons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================
+   Token Input Group
+   ============================================ */
+
+.ds-token-input-group {
+  display: flex;
+  gap: var(--ds-space-2);
+  align-items: flex-start;
+}
+
+.ds-token-input-group input {
+  flex: 1;
+}
+
+.ds-token-input-group .button {
+  flex-shrink: 0;
+}
+
+/* ============================================
+   Section Divider
+   ============================================ */
+
+.ds-section-divider {
+  border: none;
+  border-top: 1px solid var(--ds-border);
+  margin: var(--ds-space-4) 0;
+}
+
+/* ============================================
+   Utility
+   ============================================ */
+
 .devsroom-autodeploy .loading {
   opacity: 0.6;
   pointer-events: none;
 }
+
+.devsroom-autodeploy .text-muted {
+  color: var(--ds-muted);
+  font-size: 13px;
+}
+
+.devsroom-autodeploy .text-right {
+  text-align: right;
+}
+
+.devsroom-autodeploy .ds-branch-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  color: var(--ds-text);
+}
+
+.devsroom-autodeploy .ds-branch-tag .dashicons {
+  font-size: 12px;
+  width: 12px;
+  height: 12px;
+  color: var(--ds-muted);
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
 
 @media (max-width: 1200px) {
   .devsroom-autodeploy .devsroom-autodeploy-stats-grid {
@@ -340,7 +979,7 @@
   }
 
   .devsroom-autodeploy .devsroom-autodeploy-stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .devsroom-autodeploy .devsroom-panel {
@@ -358,5 +997,41 @@
     width: 100%;
     box-sizing: border-box;
     padding-top: 0;
+  }
+
+  .devsroom-autodeploy .form-table td input[type="text"],
+  .devsroom-autodeploy .form-table td input[type="email"],
+  .devsroom-autodeploy .form-table td input[type="password"],
+  .devsroom-autodeploy .form-table td input[type="number"],
+  .devsroom-autodeploy .form-table td select {
+    width: 100%;
+  }
+
+  .ds-pipeline {
+    flex-wrap: wrap;
+    gap: var(--ds-space-2);
+    justify-content: center;
+  }
+
+  .ds-pipeline-connector {
+    display: none;
+  }
+
+  .ds-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .devsroom-autodeploy .devsroom-inline-forms {
+    gap: 4px;
+  }
+
+  .ds-pagination {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .devsroom-autodeploy .devsroom-autodeploy-stats-grid {
+    grid-template-columns: 1fr;
   }
 }

@@ -6,38 +6,39 @@
  * @package Devsroom_AutoDeploy
  */
 
-// Exit if accessed directly.
 if (! defined('ABSPATH')) {
     exit;
 }
-
 ?>
 
 <div class="wrap devsroom-autodeploy">
-    <h1 class="devsroom-page-head"><?php esc_html_e('Devsroom AutoDeploy Settings', 'devsroom-autodeploy'); ?></h1>
+    <h1 class="devsroom-page-head">
+        <span class="dashicons dashicons-admin-settings"></span>
+        <?php esc_html_e('Settings', 'devsroom-autodeploy'); ?>
+    </h1>
 
     <?php
-    // Display messages.
-    if (isset($_GET['saved'])) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Settings saved successfully.', 'devsroom-autodeploy') . '</p></div>';
+    $notices = array(
+        'saved'         => array('success', __('Settings saved successfully.', 'devsroom-autodeploy')),
+        'token_added'   => array('success', __('Token added successfully.', 'devsroom-autodeploy')),
+        'token_deleted' => array('success', __('Token deleted successfully.', 'devsroom-autodeploy')),
+        'oauth_success' => array('success', __('OAuth connection successful.', 'devsroom-autodeploy')),
+    );
+
+    foreach ($notices as $key => $notice) {
+        if (isset($_GET[$key])) {
+            echo '<div class="notice notice-' . esc_attr($notice[0]) . ' is-dismissible"><p>' . esc_html($notice[1]) . '</p></div>';
+        }
     }
-    if (isset($_GET['token_added'])) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Token added successfully.', 'devsroom-autodeploy') . '</p></div>';
-    }
-    if (isset($_GET['token_deleted'])) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Token deleted successfully.', 'devsroom-autodeploy') . '</p></div>';
-    }
-    if (isset($_GET['oauth_success'])) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('OAuth connection successful.', 'devsroom-autodeploy') . '</p></div>';
-    }
+
     if (isset($_GET['error'])) {
         $error_messages = array(
-            'oauth_failed' => __('OAuth connection failed.', 'devsroom-autodeploy'),
-            'oauth_state_invalid' => __('OAuth state verification failed.', 'devsroom-autodeploy'),
+            'oauth_failed'          => __('OAuth connection failed.', 'devsroom-autodeploy'),
+            'oauth_state_invalid'   => __('OAuth state verification failed.', 'devsroom-autodeploy'),
             'oauth_exchange_failed' => __('Failed to exchange OAuth code for token.', 'devsroom-autodeploy'),
-            'missing_token' => __('Please provide a token.', 'devsroom-autodeploy'),
-            'invalid_token' => __('Invalid token.', 'devsroom-autodeploy'),
-            'invalid_id' => __('Invalid token ID.', 'devsroom-autodeploy'),
+            'missing_token'         => __('Please provide a token.', 'devsroom-autodeploy'),
+            'invalid_token'         => __('Invalid token.', 'devsroom-autodeploy'),
+            'invalid_id'            => __('Invalid token ID.', 'devsroom-autodeploy'),
         );
         $error_message = $error_messages[$_GET['error']] ?? $_GET['error'];
         echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($error_message) . '</p></div>';
@@ -45,8 +46,14 @@ if (! defined('ABSPATH')) {
     ?>
 
     <h2 class="nav-tab-wrapper">
-        <a href="#general" class="nav-tab nav-tab-active"><?php esc_html_e('General', 'devsroom-autodeploy'); ?></a>
-        <a href="#authentication" class="nav-tab"><?php esc_html_e('Authentication', 'devsroom-autodeploy'); ?></a>
+        <a href="#general" class="nav-tab nav-tab-active">
+            <span class="dashicons dashicons-admin-generic" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></span>
+            <?php esc_html_e('General', 'devsroom-autodeploy'); ?>
+        </a>
+        <a href="#authentication" class="nav-tab">
+            <span class="dashicons dashicons-lock" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></span>
+            <?php esc_html_e('Authentication', 'devsroom-autodeploy'); ?>
+        </a>
     </h2>
 
     <!-- General Settings Tab -->
@@ -66,12 +73,12 @@ if (! defined('ABSPATH')) {
                             <option value="twicedaily" <?php selected($settings['polling_interval'], 'twicedaily'); ?>><?php esc_html_e('Twice Daily', 'devsroom-autodeploy'); ?></option>
                             <option value="daily" <?php selected($settings['polling_interval'], 'daily'); ?>><?php esc_html_e('Daily', 'devsroom-autodeploy'); ?></option>
                         </select>
-                        <p class="description">
-                            <?php esc_html_e('How often to check for updates via polling.', 'devsroom-autodeploy'); ?>
-                        </p>
+                        <p class="description"><?php esc_html_e('How often to check for updates via polling.', 'devsroom-autodeploy'); ?></p>
                     </td>
                 </tr>
             </table>
+
+            <hr class="ds-section-divider">
 
             <h3><?php esc_html_e('Backup Settings', 'devsroom-autodeploy'); ?></h3>
             <table class="form-table">
@@ -80,11 +87,9 @@ if (! defined('ABSPATH')) {
                         <label for="backup_retention_days"><?php esc_html_e('Backup Retention', 'devsroom-autodeploy'); ?></label>
                     </th>
                     <td>
-                        <input type="number" name="backup_retention_days" id="backup_retention_days" value="<?php echo esc_attr($settings['backup_retention_days']); ?>" min="1" max="365">
+                        <input type="number" name="backup_retention_days" id="backup_retention_days" value="<?php echo esc_attr($settings['backup_retention_days']); ?>" min="1" max="365" style="width: 100px;">
                         <?php esc_html_e('days', 'devsroom-autodeploy'); ?>
-                        <p class="description">
-                            <?php esc_html_e('How long to keep backups before automatic cleanup.', 'devsroom-autodeploy'); ?>
-                        </p>
+                        <p class="description"><?php esc_html_e('How long to keep backups before automatic cleanup.', 'devsroom-autodeploy'); ?></p>
                     </td>
                 </tr>
                 <tr>
@@ -92,14 +97,14 @@ if (! defined('ABSPATH')) {
                         <label for="max_backup_size_mb"><?php esc_html_e('Maximum Backup Size', 'devsroom-autodeploy'); ?></label>
                     </th>
                     <td>
-                        <input type="number" name="max_backup_size_mb" id="max_backup_size_mb" value="<?php echo esc_attr($settings['max_backup_size_mb']); ?>" min="1" max="1000">
+                        <input type="number" name="max_backup_size_mb" id="max_backup_size_mb" value="<?php echo esc_attr($settings['max_backup_size_mb']); ?>" min="1" max="1000" style="width: 100px;">
                         <?php esc_html_e('MB', 'devsroom-autodeploy'); ?>
-                        <p class="description">
-                            <?php esc_html_e('Maximum size of individual backups.', 'devsroom-autodeploy'); ?>
-                        </p>
+                        <p class="description"><?php esc_html_e('Maximum size of individual backups.', 'devsroom-autodeploy'); ?></p>
                     </td>
                 </tr>
             </table>
+
+            <hr class="ds-section-divider">
 
             <h3><?php esc_html_e('Notification Settings', 'devsroom-autodeploy'); ?></h3>
             <table class="form-table">
@@ -118,12 +123,12 @@ if (! defined('ABSPATH')) {
                     </th>
                     <td>
                         <input type="email" name="notification_email" id="notification_email" class="regular-text" value="<?php echo esc_attr($settings['notification_email']); ?>">
-                        <p class="description">
-                            <?php esc_html_e('Email address to send notifications to. Leave blank to use admin email.', 'devsroom-autodeploy'); ?>
-                        </p>
+                        <p class="description"><?php esc_html_e('Leave blank to use admin email.', 'devsroom-autodeploy'); ?></p>
                     </td>
                 </tr>
             </table>
+
+            <hr class="ds-section-divider">
 
             <h3><?php esc_html_e('Security Settings', 'devsroom-autodeploy'); ?></h3>
             <table class="form-table">
@@ -137,16 +142,14 @@ if (! defined('ABSPATH')) {
                             <option value="basic" <?php selected($settings['scan_level_default'], 'basic'); ?>><?php esc_html_e('Basic', 'devsroom-autodeploy'); ?></option>
                             <option value="advanced" <?php selected($settings['scan_level_default'], 'advanced'); ?>><?php esc_html_e('Advanced', 'devsroom-autodeploy'); ?></option>
                         </select>
-                        <p class="description">
-                            <?php esc_html_e('Default security scan level for new repositories.', 'devsroom-autodeploy'); ?>
-                        </p>
+                        <p class="description"><?php esc_html_e('Default security scan level for new repositories.', 'devsroom-autodeploy'); ?></p>
                     </td>
                 </tr>
             </table>
 
-            <p class="submit">
+            <div class="devsroom-form-actions">
                 <input type="submit" name="devsroom_autodeploy_save_settings" class="button button-primary" value="<?php esc_attr_e('Save Settings', 'devsroom-autodeploy'); ?>">
-            </p>
+            </div>
         </form>
     </div>
 
@@ -160,41 +163,36 @@ if (! defined('ABSPATH')) {
                 <table class="form-table">
                     <tr>
                         <th scope="row">
-                            <label for="github_client_id"><?php esc_html_e('GitHub Client ID', 'devsroom-autodeploy'); ?></label>
+                            <label for="github_client_id"><?php esc_html_e('Client ID', 'devsroom-autodeploy'); ?></label>
                         </th>
                         <td>
                             <input type="text" name="github_client_id" id="github_client_id" class="regular-text" value="<?php echo esc_attr($settings['github_client_id']); ?>">
-                            <p class="description">
-                                <?php esc_html_e('GitHub OAuth App Client ID.', 'devsroom-autodeploy'); ?>
-                            </p>
                         </td>
                     </tr>
                     <tr>
                         <th scope="row">
-                            <label for="github_client_secret"><?php esc_html_e('GitHub Client Secret', 'devsroom-autodeploy'); ?></label>
+                            <label for="github_client_secret"><?php esc_html_e('Client Secret', 'devsroom-autodeploy'); ?></label>
                         </th>
                         <td>
                             <input type="password" name="github_client_secret" id="github_client_secret" class="regular-text" value="<?php echo esc_attr($settings['github_client_secret']); ?>">
-                            <p class="description">
-                                <?php esc_html_e('GitHub OAuth App Client Secret.', 'devsroom-autodeploy'); ?>
-                            </p>
                         </td>
                     </tr>
                 </table>
 
-                <p class="submit">
+                <div class="devsroom-form-actions">
                     <input type="submit" name="devsroom_autodeploy_save_settings" class="button button-primary" value="<?php esc_attr_e('Save OAuth Settings', 'devsroom-autodeploy'); ?>">
-                </p>
-            </form>
 
-            <?php if (! empty($settings['github_client_id']) && ! empty($settings['github_client_secret'])) : ?>
-                <p>
-                    <a href="<?php echo esc_url($this->get_oauth_url()); ?>" class="button button-secondary">
-                        <?php esc_html_e('Connect with GitHub OAuth', 'devsroom-autodeploy'); ?>
-                    </a>
-                </p>
-            <?php endif; ?>
+                    <?php if (! empty($settings['github_client_id']) && ! empty($settings['github_client_secret'])) : ?>
+                        <a href="<?php echo esc_url($this->get_oauth_url()); ?>" class="button button-secondary">
+                            <span class="dashicons dashicons-admin-links" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-top: -1px;"></span>
+                            <?php esc_html_e('Connect with GitHub', 'devsroom-autodeploy'); ?>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </form>
         </div>
+
+        <hr class="ds-section-divider">
 
         <div class="devsroom-section">
             <h3><?php esc_html_e('Personal Access Tokens', 'devsroom-autodeploy'); ?></h3>
@@ -207,26 +205,38 @@ if (! defined('ABSPATH')) {
                             <label for="pat_token"><?php esc_html_e('Add New Token', 'devsroom-autodeploy'); ?></label>
                         </th>
                         <td>
-                            <input type="password" name="pat_token" id="pat_token" class="regular-text" placeholder="<?php esc_attr_e('ghp_xxxxxxxxxxxxxxxxxxxx', 'devsroom-autodeploy'); ?>">
-                            <input type="text" name="pat_token_name" id="pat_token_name" class="regular-text" placeholder="<?php esc_attr_e('Token name (optional)', 'devsroom-autodeploy'); ?>">
+                            <div class="ds-token-input-group">
+                                <input type="password" name="pat_token" id="pat_token" placeholder="<?php esc_attr_e('ghp_xxxxxxxxxxxxxxxxxxxx', 'devsroom-autodeploy'); ?>">
+                                <input type="text" name="pat_token_name" id="pat_token_name" placeholder="<?php esc_attr_e('Token name (optional)', 'devsroom-autodeploy'); ?>">
+                                <button type="button" class="button toggle-token-visibility" data-target="#pat_token">
+                                    <span class="dashicons dashicons-visibility" style="font-size: 16px; width: 16px; height: 16px;"></span>
+                                </button>
+                            </div>
                             <p class="description">
-                                <?php esc_html_e('Create a Personal Access Token in GitHub with repo scope.', 'devsroom-autodeploy'); ?>
+                                <?php esc_html_e('Create a Personal Access Token in GitHub Settings with', 'devsroom-autodeploy'); ?>
+                                <code>repo</code> <?php esc_html_e('scope.', 'devsroom-autodeploy'); ?>
                             </p>
                         </td>
                     </tr>
                 </table>
 
-                <p class="submit">
+                <div class="devsroom-form-actions">
                     <input type="submit" name="devsroom_autodeploy_add_pat" class="button button-secondary" value="<?php esc_attr_e('Add Token', 'devsroom-autodeploy'); ?>">
-                </p>
+                </div>
             </form>
         </div>
+
+        <hr class="ds-section-divider">
 
         <div class="devsroom-section">
             <h3><?php esc_html_e('Your Tokens', 'devsroom-autodeploy'); ?></h3>
 
             <?php if (empty($tokens)) : ?>
-                <p><?php esc_html_e('No tokens added yet.', 'devsroom-autodeploy'); ?></p>
+                <div class="ds-empty-state">
+                    <span class="dashicons dashicons-shield"></span>
+                    <h3><?php esc_html_e('No tokens added', 'devsroom-autodeploy'); ?></h3>
+                    <p><?php esc_html_e('Add a Personal Access Token or connect via OAuth to authenticate with GitHub.', 'devsroom-autodeploy'); ?></p>
+                </div>
             <?php else : ?>
                 <div class="devsroom-table-wrap">
                     <table class="wp-list-table widefat fixed striped">
@@ -235,21 +245,29 @@ if (! defined('ABSPATH')) {
                                 <th><?php esc_html_e('Name', 'devsroom-autodeploy'); ?></th>
                                 <th><?php esc_html_e('Type', 'devsroom-autodeploy'); ?></th>
                                 <th><?php esc_html_e('Created', 'devsroom-autodeploy'); ?></th>
-                                <th><?php esc_html_e('Actions', 'devsroom-autodeploy'); ?></th>
+                                <th style="width: 80px;"><?php esc_html_e('Actions', 'devsroom-autodeploy'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($tokens as $token) : ?>
                                 <tr>
-                                    <td><?php echo esc_html($token['token_name']); ?></td>
-                                    <td><?php echo esc_html(ucfirst($token['auth_method'])); ?></td>
-                                    <td><?php echo esc_html(mysql2date(get_option('date_format'), $token['created_at'])); ?></td>
+                                    <td><strong><?php echo esc_html($token['token_name']); ?></strong></td>
+                                    <td>
+                                        <span class="status-badge status-<?php echo $token['auth_method'] === 'oauth' ? 'info' : 'success'; ?>">
+                                            <?php echo esc_html(ucfirst($token['auth_method'])); ?>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">
+                                            <?php echo esc_html(mysql2date(get_option('date_format'), $token['created_at'])); ?>
+                                        </span>
+                                    </td>
                                     <td>
                                         <form class="devsroom-inline-form" method="post" action="" onsubmit="return confirm('<?php esc_attr_e('Are you sure you want to delete this token?', 'devsroom-autodeploy'); ?>');">
                                             <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
                                             <input type="hidden" name="token_id" value="<?php echo esc_attr($token['id']); ?>">
-                                            <button type="submit" name="devsroom_autodeploy_delete_token" class="button button-small">
-                                                <?php esc_html_e('Delete', 'devsroom-autodeploy'); ?>
+                                            <button type="submit" name="devsroom_autodeploy_delete_token" class="button button-small button-danger">
+                                                <span class="dashicons dashicons-trash" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-top: -1px;"></span>
                                             </button>
                                         </form>
                                     </td>
@@ -262,19 +280,3 @@ if (! defined('ABSPATH')) {
         </div>
     </div>
 </div>
-
-<script>
-    jQuery(document).ready(function($) {
-        // Tab navigation.
-        $('.nav-tab').on('click', function(e) {
-            e.preventDefault();
-            var target = $(this).attr('href');
-
-            $('.nav-tab').removeClass('nav-tab-active');
-            $(this).addClass('nav-tab-active');
-
-            $('.tab-content').removeClass('active');
-            $(target).addClass('active');
-        });
-    });
-</script>

@@ -7,7 +7,6 @@
 (function ($) {
     'use strict';
 
-    // Document ready
     $(document).ready(function () {
 
         // Confirm delete actions
@@ -45,15 +44,15 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        alert(devsroom_autodeploy.strings.success);
-                        location.reload();
+                        showNotice('success', devsroom_autodeploy.strings.success);
+                        setTimeout(function () { location.reload(); }, 1000);
                     } else {
-                        alert(devsroom_autodeploy.strings.error + ': ' + response.data.message);
+                        showNotice('error', devsroom_autodeploy.strings.error + ': ' + response.data.message);
                         $button.prop('disabled', false).text($button.data('original-text'));
                     }
                 },
                 error: function (xhr, status, error) {
-                    alert(devsroom_autodeploy.strings.error + ': ' + error);
+                    showNotice('error', devsroom_autodeploy.strings.error + ': ' + error);
                     $button.prop('disabled', false).text($button.data('original-text'));
                 }
             });
@@ -68,62 +67,50 @@
         });
 
         // Auto-refresh for pending deployments
-        if ($('.status-pending, .status-scanning, .status-backing_up').length > 0) {
+        if ($('.status-pending, .status-scanning, .status-backing_up, .status-locking, .status-comparing, .status-downloading, .status-extracting, .status-deploying, .status-verifying, .status-rolling_back').length > 0) {
             setInterval(function () {
                 location.reload();
-            }, 30000); // Refresh every 30 seconds
+            }, 15000);
         }
 
-        // Copy webhook URL to clipboard
-        $('.copy-webhook-url').on('click', function (e) {
-            e.preventDefault();
-
-            var $button = $(this);
-            var url = $button.data('url');
-
-            navigator.clipboard.writeText(url).then(function () {
-                $button.text('Copied!');
-                setTimeout(function () {
-                    $button.text('Copy URL');
-                }, 2000);
-            }).catch(function (err) {
-                console.error('Failed to copy: ', err);
-            });
-        });
-
-        // Toggle advanced options
-        $('.toggle-advanced').on('click', function (e) {
+        // Copy to clipboard
+        $('.devsroom-autodeploy').on('click', '.copy-to-clipboard', function (e) {
             e.preventDefault();
             var $button = $(this);
-            var $target = $($button.data('target'));
+            var text = $button.data('copy');
+            var originalText = $button.text();
 
-            $target.slideToggle(200, function () {
-                if ($target.is(':visible')) {
-                    $button.text('Hide Advanced Options');
-                } else {
-                    $button.text('Show Advanced Options');
-                }
+            navigator.clipboard.writeText(text).then(function () {
+                $button.text(devsroom_autodeploy.strings.copied || 'Copied!');
+                setTimeout(function () { $button.text(originalText); }, 2000);
+            }).catch(function () {
+                var $temp = $('<textarea>');
+                $('body').append($temp);
+                $temp.val(text).select();
+                document.execCommand('copy');
+                $temp.remove();
+                $button.text(devsroom_autodeploy.strings.copied || 'Copied!');
+                setTimeout(function () { $button.text(originalText); }, 2000);
             });
         });
 
         // Token visibility toggle
-        $('.toggle-token-visibility').on('click', function (e) {
+        $('.devsroom-autodeploy').on('click', '.toggle-token-visibility', function (e) {
             e.preventDefault();
-
             var $button = $(this);
             var $input = $($button.data('target'));
 
             if ($input.attr('type') === 'password') {
                 $input.attr('type', 'text');
-                $button.text('Hide');
+                $button.find('.dashicons').removeClass('dashicons-visibility').addClass('dashicons-hidden');
             } else {
                 $input.attr('type', 'password');
-                $button.text('Show');
+                $button.find('.dashicons').removeClass('dashicons-hidden').addClass('dashicons-visibility');
             }
         });
 
         // Status filter handling
-        $('.status-filter').on('change', function () {
+        $('.devsroom-autodeploy').on('change', '.status-filter', function () {
             var status = $(this).val();
             var url = new URL(window.location.href);
 
@@ -143,87 +130,59 @@
             $('.repository-row').each(function () {
                 var $row = $(this);
                 var text = $row.text().toLowerCase();
-
-                if (text.indexOf(value) > -1) {
-                    $row.show();
-                } else {
-                    $row.hide();
-                }
+                $row.toggle(text.indexOf(value) > -1);
             });
         });
 
-        // Deployment details modal
-        $('.view-deployment-details').on('click', function (e) {
+        // Settings tab navigation
+        $('.devsroom-autodeploy .nav-tab').on('click', function (e) {
             e.preventDefault();
+            var target = $(this).attr('href');
 
-            var $button = $(this);
-            var deploymentId = $button.data('deployment-id');
+            $('.nav-tab').removeClass('nav-tab-active');
+            $(this).addClass('nav-tab-active');
 
-            // Load deployment details via AJAX
-            $.ajax({
-                url: devsroom_autodeploy.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'devsroom_autodeploy_deployment_details',
-                    nonce: devsroom_autodeploy.nonce,
-                    deployment_id: deploymentId
-                },
-                success: function (response) {
-                    if (response.success) {
-                        // Show modal with details
-                        $('#deployment-modal .modal-content').html(response.data.html);
-                        $('#deployment-modal').fadeIn(200);
-                    }
-                },
-                error: function (xhr, status, error) {
-                    alert(devsroom_autodeploy.strings.error + ': ' + error);
-                }
-            });
+            $('.tab-content').removeClass('active');
+            $(target).addClass('active');
         });
 
-        // Close modal
-        $('.close-modal, .modal-overlay').on('click', function () {
-            $('#deployment-modal').fadeOut(200);
-        });
-
-        // Close modal on escape key
-        $(document).on('keydown', function (e) {
-            if (e.key === 'Escape') {
-                $('#deployment-modal').fadeOut(200);
-            }
-        });
-
-        // Dismissible Recent Deployments notice
-        $('.devsroom-recent-deployments-notice').on('click', '.notice-dismiss', function (e) {
+        // Log context toggle
+        $('.devsroom-autodeploy').on('click', '.toggle-log-context', function (e) {
             e.preventDefault();
-
-            $.ajax({
-                url: devsroom_autodeploy.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'devsroom_autodeploy_dismiss_recent_deployments',
-                    nonce: devsroom_autodeploy.nonce
-                },
-                success: function (response) {
-                    if (response.success) {
-                        $('.devsroom-recent-deployments-notice').fadeOut(300, function () {
-                            $(this).remove();
-                        });
-                    }
-                }
-            });
+            $(this).closest('tr').next('.log-context-row').toggle();
         });
+
+        // Pipeline step animation
+        $('.ds-pipeline-step').each(function (index) {
+            var $step = $(this);
+            setTimeout(function () {
+                $step.addClass('ds-pipeline-step--visible');
+            }, index * 100);
+        });
+
+        // Auto-dismiss notices after 5 seconds
+        setTimeout(function () {
+            $('.devsroom-autodeploy .notice.is-dismissible .notice-dismiss').each(function () {
+                $(this).trigger('click');
+            });
+        }, 5000);
 
         // Initialize tooltips
         if ($.fn.tooltip) {
             $('[data-tooltip]').tooltip({
-                position: {
-                    my: 'center bottom-10',
-                    at: 'center top'
-                },
+                position: { my: 'center bottom-10', at: 'center top' },
                 tooltipClass: 'devsroom-autodeploy-tooltip'
             });
         }
-        });
-})(jQuery);
+    });
 
+    // Utility: show a floating notice
+    function showNotice(type, message) {
+        var $notice = $('<div class="notice notice-' + type + ' is-dismissible ds-floating-notice"><p>' + message + '</p></div>');
+        $('.devsroom-autodeploy').prepend($notice);
+        setTimeout(function () {
+            $notice.fadeOut(300, function () { $(this).remove(); });
+        }, 4000);
+    }
+
+})(jQuery);
