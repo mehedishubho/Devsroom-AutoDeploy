@@ -240,63 +240,97 @@ class Deployment_Manager
             }
         }
 
-        // Download repository archive.
+        // Download repository archive or sync incrementally.
         // Use WP_CONTENT_DIR/upgrade/ so temp dir is on the same filesystem as
         // WP_PLUGIN_DIR — this guarantees rename() is atomic on POSIX (Pitfall 1).
         $temp_dir = WP_CONTENT_DIR . '/upgrade/devsroom-autodeploy-' . $repository_id . '-' . time();
         wp_mkdir_p($temp_dir);
 
-        $archive_path = $temp_dir . '/archive.zip';
+        // Update status to show we're comparing (before incremental sync attempt).
+        $this->update_deployment_status($deployment_id, 'comparing');
 
-        $this->logger->info($deployment_id, 'Downloading repository archive...');
+        $use_incremental = false;
+        $sync_result     = null;
+        $base_commit     = $repository['last_commit_hash'] ?? '';
 
-        if (! $github_api->download_archive(
-            $repository['repo_owner'],
-            $repository['repo_name'],
-            $repository['branch'],
-            $archive_path
-        )) {
-            $this->logger->error($deployment_id, 'Failed to download repository archive');
-            $this->update_deployment_status($deployment_id, 'failed', 'Failed to download repository archive');
-            $this->notification->send_deployment_failure(array(
-                'plugin_name'  => $repository['plugin_slug'],
-                'repo_owner'   => $repository['repo_owner'],
-                'repo_name'    => $repository['repo_name'],
-                'branch'       => $repository['branch'],
-                'error_message' => 'Failed to download repository archive',
-            ));
-
-            return array(
-                'success' => false,
-                'message' => 'Failed to download repository archive.',
-                'deployment_id' => $deployment_id,
+        // Try incremental sync if we have a previous deployment to compare against.
+        if (! empty($base_commit)) {
+            $this->logger->info($deployment_id, 'Attempting incremental sync...');
+            $sync_result = $this->sync_incremental(
+                $github_api,
+                $repository['repo_owner'],
+                $repository['repo_name'],
+                $base_commit,
+                $commit_hash,
+                $temp_dir,
+                $deployment_id
             );
+
+            if (false !== $sync_result) {
+                $use_incremental = true;
+                $this->logger->info($deployment_id, 'Incremental sync completed', $sync_result);
+            }
         }
 
-        // Extract archive using memory-safe entry-by-entry extraction (Pitfall 12).
-        $this->logger->info($deployment_id, 'Extracting archive...');
+        // Fallback: full archive download + extraction.
+        if (! $use_incremental) {
+            $archive_path = $temp_dir . '/archive.zip';
 
-        if (! $this->extract_to_entry_by_entry($archive_path, $temp_dir)) {
-            $this->logger->error($deployment_id, 'Failed to extract archive');
-            $this->update_deployment_status($deployment_id, 'failed', 'Failed to extract archive');
+            $this->logger->info($deployment_id, 'Downloading full repository archive...');
 
-            return array(
-                'success' => false,
-                'message' => 'Failed to extract archive.',
-                'deployment_id' => $deployment_id,
-            );
+            if (! $github_api->download_archive(
+                $repository['repo_owner'],
+                $repository['repo_name'],
+                $repository['branch'],
+                $archive_path
+            )) {
+                $this->logger->error($deployment_id, 'Failed to download repository archive');
+                $this->update_deployment_status($deployment_id, 'failed', 'Failed to download repository archive');
+                $this->notification->send_deployment_failure(array(
+                    'plugin_name'   => $repository['plugin_slug'],
+                    'repo_owner'    => $repository['repo_owner'],
+                    'repo_name'     => $repository['repo_name'],
+                    'branch'        => $repository['branch'],
+                    'error_message' => 'Failed to download repository archive',
+                ));
+
+                return array(
+                    'success'       => false,
+                    'message'       => 'Failed to download repository archive.',
+                    'deployment_id' => $deployment_id,
+                );
+            }
+
+            // Extract archive using memory-safe entry-by-entry extraction (PERF-01).
+            $this->logger->info($deployment_id, 'Extracting archive...');
+
+            if (! $this->extract_to_entry_by_entry($archive_path, $temp_dir)) {
+                $this->logger->error($deployment_id, 'Failed to extract archive');
+                $this->update_deployment_status($deployment_id, 'failed', 'Failed to extract archive');
+
+                return array(
+                    'success'       => false,
+                    'message'       => 'Failed to extract archive.',
+                    'deployment_id' => $deployment_id,
+                );
+            }
+
+            // Clean up archive file immediately.
+            @unlink($archive_path);
         }
 
-        // Find extracted directory.
-        $extracted_dir = $this->find_extracted_directory($temp_dir);
+        // Find extracted/synced directory.
+        // For incremental sync, files are directly in $temp_dir.
+        // For full archive, files are in a subdirectory (GitHub structure: owner-repo-sha/).
+        $extracted_dir = $use_incremental ? $temp_dir : $this->find_extracted_directory($temp_dir);
 
         if (! $extracted_dir) {
             $this->logger->error($deployment_id, 'Failed to find extracted directory');
             $this->update_deployment_status($deployment_id, 'failed', 'Failed to find extracted directory');
 
             return array(
-                'success' => false,
-                'message' => 'Failed to find extracted directory.',
+                'success'       => false,
+                'message'       => 'Failed to find extracted directory.',
                 'deployment_id' => $deployment_id,
             );
         }
@@ -922,6 +956,155 @@ class Deployment_Manager
 
         $zip->close();
         return true;
+    }
+
+    /**
+     * Sync only changed files via GitHub Compare API.
+     *
+     * Uses the Compare API to detect added, modified, and removed files between
+     * the last deployed commit and the target commit. Downloads only changed files
+     * via the Contents API. Handles file deletions for removed files.
+     *
+     * Falls back to false (triggering full archive download) when:
+     * - More than 100 files changed
+     * - Any file download fails
+     * - Compare API returns an error
+     * - It's the first deploy (no base commit to compare)
+     *
+     * @param GitHub_API $github_api  GitHub API instance.
+     * @param string     $owner       Repository owner.
+     * @param string     $repo        Repository name.
+     * @param string     $base_commit Last deployed commit SHA.
+     * @param string     $head_commit Target commit SHA.
+     * @param string     $temp_dir    Temp directory to sync files into.
+     * @param int        $deployment_id Deployment ID for logging.
+     * @return array|false Sync result with keys: added, modified, removed, or false on fallback needed.
+     */
+    private function sync_incremental(
+        GitHub_API $github_api,
+        string $owner,
+        string $repo,
+        string $base_commit,
+        string $head_commit,
+        string $temp_dir,
+        int $deployment_id
+    ): array|false {
+        $this->logger->info($deployment_id, 'Comparing commits for incremental sync', array(
+            'base' => $base_commit,
+            'head' => $head_commit,
+        ));
+
+        $comparison = $github_api->compare_commits($owner, $repo, $base_commit, $head_commit);
+
+        if (! $comparison || ! isset($comparison['files'])) {
+            $this->logger->warning($deployment_id, 'Compare API failed, falling back to full download');
+            return false;
+        }
+
+        $files = $comparison['files'];
+
+        // Empty diff — nothing changed (shouldn't happen since we check commit hash earlier).
+        if (empty($files)) {
+            $this->logger->info($deployment_id, 'No files changed between commits');
+            return array(
+                'added'    => 0,
+                'modified' => 0,
+                'removed'  => 0,
+            );
+        }
+
+        // Classify files by status.
+        $added    = array();
+        $modified = array();
+        $removed  = array();
+
+        foreach ($files as $file) {
+            $status   = $file['status'] ?? '';
+            $filename = $file['filename'] ?? '';
+
+            if (empty($filename)) {
+                continue;
+            }
+
+            switch ($status) {
+                case 'added':
+                    $added[] = $filename;
+                    break;
+                case 'modified':
+                    $modified[] = $filename;
+                    break;
+                case 'removed':
+                    $removed[] = $filename;
+                    break;
+                case 'renamed':
+                    // Treat rename as remove old + add new.
+                    $removed[]  = $file['previous_filename'] ?? $filename;
+                    $added[]    = $filename;
+                    break;
+                // 'unchanged', 'copied' — skip.
+            }
+        }
+
+        $total_changed = count($added) + count($modified) + count($removed);
+
+        // If more than 100 files changed, fall back to full archive.
+        if ($total_changed > 100) {
+            $this->logger->info($deployment_id, 'Too many changes for incremental sync, falling back', array(
+                'changed' => $total_changed,
+            ));
+            return false;
+        }
+
+        $this->logger->info($deployment_id, 'Incremental sync: files to process', array(
+            'added'    => count($added),
+            'modified' => count($modified),
+            'removed'  => count($removed),
+        ));
+
+        // Download added and modified files.
+        $files_to_download = array_merge($added, $modified);
+        $head_short = substr($head_commit, 0, 7);
+
+        foreach ($files_to_download as $filepath) {
+            $content = $github_api->download_file_content($owner, $repo, $filepath, $head_short);
+
+            if (false === $content) {
+                $this->logger->warning($deployment_id, 'Incremental sync: file download failed, falling back', array(
+                    'file' => $filepath,
+                ));
+                return false;
+            }
+
+            // Write file to temp directory preserving repository structure.
+            $dest_path = $temp_dir . '/' . $filepath;
+            $dest_parent = dirname($dest_path);
+
+            if (! is_dir($dest_parent)) {
+                wp_mkdir_p($dest_parent);
+            }
+
+            if (false === file_put_contents($dest_path, $content)) {
+                $this->logger->warning($deployment_id, 'Incremental sync: failed to write file, falling back', array(
+                    'file' => $filepath,
+                ));
+                return false;
+            }
+        }
+
+        // Handle removed files — they are NOT in the temp dir (which starts empty),
+        // so we track them for logging. The deployed plugin will only have files
+        // that exist in the new commit.
+        foreach ($removed as $filepath) {
+            $this->logger->info($deployment_id, 'Incremental sync: file removed in new version', array(
+                'file' => $filepath,
+            ));
+        }
+
+        return array(
+            'added'    => count($added),
+            'modified' => count($modified),
+            'removed'  => count($removed),
+        );
     }
 
     /**

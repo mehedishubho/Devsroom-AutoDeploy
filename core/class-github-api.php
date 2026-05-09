@@ -198,6 +198,49 @@ class GitHub_API
     }
 
     /**
+     * Download individual file content from repository.
+     *
+     * Uses the GitHub Contents API to fetch a single file's raw content
+     * at a specific commit SHA. Used by incremental sync to download
+     * only changed files instead of the full archive.
+     *
+     * @param string $owner Repository owner.
+     * @param string $repo  Repository name.
+     * @param string $path  File path relative to repository root.
+     * @param string $ref   Commit SHA or branch ref.
+     * @return string|false File content or false on failure.
+     */
+    public function download_file_content(string $owner, string $repo, string $path, string $ref): string|false
+    {
+        $url = $this->api_url . "/repos/$owner/$repo/contents/$path?ref=$ref";
+
+        $response = wp_remote_get(
+            $url,
+            array(
+                'headers' => array(
+                    'Authorization' => "token {$this->token}",
+                    'Accept'        => 'application/vnd.github.v3.raw',
+                ),
+                'timeout' => 60,
+            )
+        );
+
+        if (is_wp_error($response)) {
+            error_log('Devsoom AutoDeploy: Failed to download file - ' . $response->get_error_message());
+            return false;
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+
+        if (200 !== $status_code) {
+            error_log("Devsoom AutoDeploy: File download failed with status $status_code for $path");
+            return false;
+        }
+
+        return wp_remote_retrieve_body($response);
+    }
+
+    /**
      * Get repository webhooks.
      *
      * @param string $owner Repository owner.
