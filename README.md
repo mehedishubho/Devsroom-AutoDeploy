@@ -157,6 +157,44 @@ Action:
 
 If the comparison returns >100 changed files or any download fails, the plugin falls back to a full archive download.
 
+## Use Cases
+
+### Agency Managing Client Sites
+
+You maintain 15 WordPress sites, each running 5-10 custom plugins. Without AutoDeploy, updating a plugin means: download ZIP from GitHub, SFTP to server, extract, hope nothing breaks. With AutoDeploy: push to `main` on GitHub, every connected site updates within seconds. If a plugin has a syntax error, the old version stays live — no downtime, no emergency rollbacks.
+
+**Setup:** Connect each plugin to its GitHub repo via webhook. Push to `main` triggers deployment. The plugin handles backup, verification, and rollback automatically.
+
+### Solo Developer with Staging + Production
+
+You develop plugins locally and push to a `staging` branch for testing, then merge to `production` for live sites. AutoDeploy lets you connect the same plugin to different branches on different environments — staging tracks `staging`, production tracks `production`. Push to staging, test, merge to production, live site updates.
+
+**Setup:** Two WordPress sites, same plugin, different branch configuration. Webhook on both repos.
+
+### Open Source Plugin with Self-Hosted Distribution
+
+You maintain an open source plugin and want to deploy the latest release to your own site without downloading and uploading manually. AutoDeploy watches your release branch and deploys when you tag a new version. No CI/CD pipeline needed — the plugin IS the pipeline.
+
+**Setup:** Connect repo, set branch to `releases` or `main`, enable auto-deploy. Push tags to trigger.
+
+### Enterprise with Security Requirements
+
+Your security team requires code scanning before deployment. AutoDeploy's built-in security scanner checks for PHP injection patterns, obfuscated code, and suspicious function calls before any file goes live. If a scan fails, the deployment is blocked and you get an email alert. No malicious code reaches production.
+
+**Setup:** Connect repos with "Advanced" scan level. Enable email notifications for security alerts.
+
+### Plugin Developer Testing Across Multiple Sites
+
+You develop a plugin and maintain it across 5 client sites. Every commit should deploy to all 5 sites simultaneously. AutoDeploy's webhook trigger handles this — one push to GitHub, 5 deployments start in parallel. Each site gets the update, each runs verification, each creates a backup first.
+
+**Setup:** Same repo connected to 5 different WordPress installations. All track `main`.
+
+### Preventing Downtime During Team Deployments
+
+Two developers push to the same branch within minutes of each other. Without locking, both deployments would run simultaneously, potentially corrupting the plugin directory. AutoDeploy's per-plugin locking prevents this — the second deployment waits or fails gracefully. The admin can see the lock status and force-unlock if needed.
+
+**Setup:** Automatic — locking is built in. No configuration needed.
+
 ## Requirements
 
 - WordPress 6.0 or higher
