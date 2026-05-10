@@ -484,7 +484,8 @@ class Deployment_Manager
             // Restore previous version.
             if (is_dir($old_path)) {
                 if (! @rename($old_path, $plugin_path)) {
-                    // Windows fallback.
+                    // Windows fallback — clean target first, then copy from .old.
+                    $this->cleanup_dir($plugin_path);
                     $this->copy_directory($old_path, $plugin_path);
                     $this->cleanup_dir($old_path);
                 }
@@ -1415,6 +1416,33 @@ class Deployment_Manager
                 'checks'  => $checks,
             );
         }
+
+        // Check 2b: Syntax check all PHP files recursively.
+        $php_files = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($plugin_path, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+        $syntax_errors = array();
+        foreach ($php_files as $file) {
+            if ($file->isFile() && $file->getExtension() === 'php') {
+                try {
+                    $code = file_get_contents($file->getRealPath());
+                    if (false !== $code) {
+                        token_get_all($code, TOKEN_PARSE);
+                    }
+                } catch (\Throwable $e) {
+                    $syntax_errors[] = basename($file->getPathname()) . ': ' . $e->getMessage();
+                }
+            }
+        }
+        if (! empty($syntax_errors)) {
+            $checks['syntax_all'] = false;
+            return array(
+                'success' => false,
+                'message' => 'PHP syntax errors found: ' . implode('; ', array_slice($syntax_errors, 0, 3)),
+                'checks'  => $checks,
+            );
+        }
+        $checks['syntax_all'] = true;
 
         // Check 3: Plugin header exists.
         $header_content = file_get_contents($main_file, false, null, 0, 8192);
