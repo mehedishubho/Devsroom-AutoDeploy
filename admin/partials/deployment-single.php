@@ -145,7 +145,7 @@ foreach ($logs as $log) {
                 <div class="ds-detail-item-label"><?php esc_html_e('Commit', 'devsroom-autodeploy'); ?></div>
                 <div class="ds-detail-item-value">
                     <code><?php echo esc_html($deployment['commit_hash']); ?></code>
-                    <button class="copy-to-clipboard button button-small" data-copy="<?php echo esc_attr($deployment['commit_hash']); ?>" style="margin-left: 4px;">
+                    <button class="copy-to-clipboard button button-small ds-ml-1" data-copy="<?php echo esc_attr($deployment['commit_hash']); ?>">
                         <?php esc_html_e('Copy', 'devsroom-autodeploy'); ?>
                     </button>
                 </div>
@@ -199,7 +199,7 @@ foreach ($logs as $log) {
 
         <?php if (! empty($deployment['error_message'])) : ?>
             <hr class="ds-section-divider">
-            <div class="notice notice-error" style="margin: 0;">
+            <div class="notice notice-error ds-m-0">
                 <p><strong><?php esc_html_e('Error:', 'devsroom-autodeploy'); ?></strong> <?php echo esc_html($deployment['error_message']); ?></p>
             </div>
         <?php endif; ?>

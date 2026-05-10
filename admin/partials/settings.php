@@ -47,11 +47,11 @@ if (! defined('ABSPATH')) {
 
     <h2 class="nav-tab-wrapper">
         <a href="#general" class="nav-tab nav-tab-active">
-            <span class="dashicons dashicons-admin-generic" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></span>
+            <span class="dashicons dashicons-admin-generic"></span>
             <?php esc_html_e('General', 'devsroom-autodeploy'); ?>
         </a>
         <a href="#authentication" class="nav-tab">
-            <span class="dashicons dashicons-lock" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></span>
+            <span class="dashicons dashicons-lock"></span>
             <?php esc_html_e('Authentication', 'devsroom-autodeploy'); ?>
         </a>
     </h2>
@@ -87,7 +87,7 @@ if (! defined('ABSPATH')) {
                         <label for="backup_retention_days"><?php esc_html_e('Backup Retention', 'devsroom-autodeploy'); ?></label>
                     </th>
                     <td>
-                        <input type="number" name="backup_retention_days" id="backup_retention_days" value="<?php echo esc_attr($settings['backup_retention_days']); ?>" min="1" max="365" style="width: 100px;">
+                        <input type="number" name="backup_retention_days" id="backup_retention_days" value="<?php echo esc_attr($settings['backup_retention_days']); ?>" min="1" max="365" class="ds-input-narrow">
                         <?php esc_html_e('days', 'devsroom-autodeploy'); ?>
                         <p class="description"><?php esc_html_e('How long to keep backups before automatic cleanup.', 'devsroom-autodeploy'); ?></p>
                     </td>
@@ -97,7 +97,7 @@ if (! defined('ABSPATH')) {
                         <label for="max_backup_size_mb"><?php esc_html_e('Maximum Backup Size', 'devsroom-autodeploy'); ?></label>
                     </th>
                     <td>
-                        <input type="number" name="max_backup_size_mb" id="max_backup_size_mb" value="<?php echo esc_attr($settings['max_backup_size_mb']); ?>" min="1" max="1000" style="width: 100px;">
+                        <input type="number" name="max_backup_size_mb" id="max_backup_size_mb" value="<?php echo esc_attr($settings['max_backup_size_mb']); ?>" min="1" max="1000" class="ds-input-narrow">
                         <?php esc_html_e('MB', 'devsroom-autodeploy'); ?>
                         <p class="description"><?php esc_html_e('Maximum size of individual backups.', 'devsroom-autodeploy'); ?></p>
                     </td>
@@ -184,7 +184,7 @@ if (! defined('ABSPATH')) {
 
                     <?php if (! empty($settings['github_client_id']) && ! empty($settings['github_client_secret'])) : ?>
                         <a href="<?php echo esc_url($this->get_oauth_url()); ?>" class="button button-secondary">
-                            <span class="dashicons dashicons-admin-links" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-top: -1px;"></span>
+                            <span class="dashicons dashicons-admin-links ds-icon-sm ds-icon-btn"></span>
                             <?php esc_html_e('Connect with GitHub', 'devsroom-autodeploy'); ?>
                         </a>
                     <?php endif; ?>
@@ -209,7 +209,7 @@ if (! defined('ABSPATH')) {
                                 <input type="password" name="pat_token" id="pat_token" placeholder="<?php esc_attr_e('ghp_xxxxxxxxxxxxxxxxxxxx', 'devsroom-autodeploy'); ?>">
                                 <input type="text" name="pat_token_name" id="pat_token_name" placeholder="<?php esc_attr_e('Token name (optional)', 'devsroom-autodeploy'); ?>">
                                 <button type="button" class="button toggle-token-visibility" data-target="#pat_token">
-                                    <span class="dashicons dashicons-visibility" style="font-size: 16px; width: 16px; height: 16px;"></span>
+                                    <span class="dashicons dashicons-visibility ds-icon-lg"></span>
                                 </button>
                             </div>
                             <p class="description">
@@ -267,7 +267,7 @@ if (! defined('ABSPATH')) {
                                             <?php wp_nonce_field('devsroom_autodeploy_settings', 'devsroom_autodeploy_nonce'); ?>
                                             <input type="hidden" name="token_id" value="<?php echo esc_attr($token['id']); ?>">
                                             <button type="submit" name="devsroom_autodeploy_delete_token" class="button button-small button-danger">
-                                                <span class="dashicons dashicons-trash" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-top: -1px;"></span>
+                                                <span class="dashicons dashicons-trash ds-icon-sm ds-icon-btn"></span>
                                             </button>
                                         </form>
                                     </td>

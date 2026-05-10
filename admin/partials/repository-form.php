@@ -151,7 +151,7 @@ $status_map = array(
                         </select>
                         <p class="description">
                             <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-settings')); ?>">
-                                <span class="dashicons dashicons-admin-generic" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span>
+                                <span class="dashicons dashicons-admin-generic ds-icon-sm"></span>
                                 <?php esc_html_e('Manage tokens in Settings', 'devsroom-autodeploy'); ?>
                             </a>
                         </p>
@@ -200,7 +200,7 @@ $status_map = array(
         <div class="devsroom-panel-header">
             <h2><?php esc_html_e('Connected Repositories', 'devsroom-autodeploy'); ?></h2>
             <?php if (!empty($repositories)) : ?>
-                <input type="text" id="repository-search" placeholder="<?php esc_attr_e('Search repositories...', 'devsroom-autodeploy'); ?>" class="regular-text" style="max-width: 200px;">
+                <input type="text" id="repository-search" placeholder="<?php esc_attr_e('Search repositories...', 'devsroom-autodeploy'); ?>" class="regular-text ds-search-input">
             <?php endif; ?>
         </div>
 
@@ -259,7 +259,7 @@ $status_map = array(
                                 <td>
                                     <?php if ($repo['has_update']) : ?>
                                         <span class="update-available-badge">
-                                            <span class="dashicons dashicons-update" style="font-size: 12px; width: 12px; height: 12px;"></span>
+                                            <span class="dashicons dashicons-update ds-icon-xs"></span>
                                             <?php esc_html_e('Available', 'devsroom-autodeploy'); ?>
                                         </span>
                                     <?php else : ?>
@@ -298,7 +298,7 @@ $status_map = array(
                                             <?php wp_nonce_field('devsroom_autodeploy_save_repository', 'devsroom_autodeploy_nonce'); ?>
                                             <input type="hidden" name="repository_id" value="<?php echo esc_attr($repo['id']); ?>">
                                             <button type="submit" name="devsroom_autodeploy_delete_repository" class="button button-small button-danger">
-                                                <span class="dashicons dashicons-trash" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-top: -1px;"></span>
+                                                <span class="dashicons dashicons-trash ds-icon-sm ds-icon-btn"></span>
                                             </button>
                                         </form>
                                         <?php if (! empty($repo['locked_at'])) : ?>
@@ -308,7 +308,7 @@ $status_map = array(
                                             )); ?>"
                                                class="button button-small"
                                                onclick="return confirm('<?php esc_attr_e('Are you sure you want to force-unlock this repository?', 'devsroom-autodeploy'); ?>');">
-                                                <span class="dashicons dashicons-unlock" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-top: -1px;"></span>
+                                                <span class="dashicons dashicons-unlock ds-icon-sm ds-icon-btn"></span>
                                                 <?php esc_html_e('Unlock', 'devsroom-autodeploy'); ?>
                                             </a>
                                         <?php endif; ?>

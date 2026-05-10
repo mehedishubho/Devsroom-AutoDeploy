@@ -96,7 +96,7 @@ $trigger_labels = array(
                         <?php foreach ($deployments as $deployment) : ?>
                             <tr>
                                 <td>
-                                    <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-deployments&deployment_id=' . $deployment['id'])); ?>" style="font-weight: 600;">
+                                    <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-deployments&deployment_id=' . $deployment['id'])); ?>" class="font-semibold">
                                         <?php echo esc_html($deployment['plugin_slug']); ?>
                                     </a>
                                 </td>
@@ -124,7 +124,7 @@ $trigger_labels = array(
                                     $icon = $trigger_icon[$deployment['trigger_type']] ?? 'admin-generic';
                                     ?>
                                     <span class="text-muted">
-                                        <span class="dashicons dashicons-<?php echo esc_attr($icon); ?>" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-right: 2px;"></span>
+                                        <span class="dashicons dashicons-<?php echo esc_attr($icon); ?> ds-icon-sm ds-trigger-icon"></span>
                                         <?php echo esc_html($trigger_labels[$deployment['trigger_type']] ?? $deployment['trigger_type']); ?>
                                     </span>
                                 </td>

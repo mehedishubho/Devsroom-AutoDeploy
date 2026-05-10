@@ -86,7 +86,7 @@ $status_map = array(
                             <h3><?php esc_html_e('No deployments yet', 'devsroom-autodeploy'); ?></h3>
                             <p><?php esc_html_e('Connect a GitHub repository to start deploying plugins automatically.', 'devsroom-autodeploy'); ?></p>
                             <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-repositories')); ?>" class="button button-primary">
-                                <span class="dashicons dashicons-plus-alt" style="margin-top: 4px;"></span>
+                                <span class="dashicons dashicons-plus-alt"></span>
                                 <?php esc_html_e('Add Repository', 'devsroom-autodeploy'); ?>
                             </a>
                         </div>
@@ -106,7 +106,7 @@ $status_map = array(
                                     <?php foreach ($recent_deployments as $deployment) : ?>
                                         <tr>
                                             <td>
-                                                <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-deployments&deployment_id=' . $deployment['id'])); ?>" style="font-weight: 600;">
+                                                <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-deployments&deployment_id=' . $deployment['id'])); ?>" class="font-semibold">
                                                     <?php echo esc_html($deployment['plugin_slug']); ?>
                                                 </a>
                                             </td>
@@ -146,7 +146,7 @@ $status_map = array(
                 <div class="devsroom-panel-header">
                     <h2><?php esc_html_e('Repositories', 'devsroom-autodeploy'); ?></h2>
                     <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-repositories')); ?>" class="button button-small button-primary">
-                        <span class="dashicons dashicons-plus" style="margin-top: 4px; font-size: 14px;"></span>
+                        <span class="dashicons dashicons-plus"></span>
                         <?php esc_html_e('Add New', 'devsroom-autodeploy'); ?>
                     </a>
                 </div>
@@ -157,7 +157,7 @@ $status_map = array(
                         <h3><?php esc_html_e('No repositories connected', 'devsroom-autodeploy'); ?></h3>
                         <p><?php esc_html_e('Connect your first GitHub repository to start automating plugin deployments.', 'devsroom-autodeploy'); ?></p>
                         <a href="<?php echo esc_url(admin_url('admin.php?page=devsroom-autodeploy-repositories')); ?>" class="button button-primary">
-                            <span class="dashicons dashicons-plus-alt" style="margin-top: 4px;"></span>
+                            <span class="dashicons dashicons-plus-alt"></span>
                             <?php esc_html_e('Add Repository', 'devsroom-autodeploy'); ?>
                         </a>
                     </div>
@@ -165,7 +165,7 @@ $status_map = array(
                     <?php if ($updates_count > 0) : ?>
                         <div class="notice notice-info is-dismissible">
                             <p>
-                                <span class="dashicons dashicons-update-alt" style="margin-top: 3px;"></span>
+                                <span class="dashicons dashicons-update-alt ds-icon-notice"></span>
                                 <?php
                                 printf(
                                     esc_html__('%d repositories have updates available.', 'devsroom-autodeploy'),
