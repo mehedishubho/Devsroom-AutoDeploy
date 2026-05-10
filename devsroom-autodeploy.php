@@ -4,7 +4,7 @@
  * Plugin Name: Devsroom AutoDeploy
  * Plugin URI: https://devsroom.com/
  * Description: Automate WordPress plugin deployments from GitHub repositories. Connect your plugins to GitHub repos and deploy updates automatically via webhooks or scheduled checks.
- * Version: 1.0.2
+ * Version: 1.0.1
  * Author: wpmhs
  * Author URI: https://wpmhs.com/
  * License: GPL-2.0+
@@ -25,7 +25,7 @@ if (! defined('WPINC')) {
 /**
  * Currently plugin version.
  */
-define('DEVSROOM_AUTODEPLOY_VERSION', '1.0.2');
+define('DEVSROOM_AUTODEPLOY_VERSION', '1.0.1');
 
 /**
  * Plugin directory path.
