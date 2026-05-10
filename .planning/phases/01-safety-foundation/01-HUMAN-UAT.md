@@ -8,7 +8,11 @@ updated: 2026-05-10T16:25:00Z
 
 ## Current Test
 
-[awaiting human testing]
+number: 1
+name: Concurrent Deployment Rejection
+expected: |
+  Trigger two simultaneous deploys to the same repository. The second request should fail immediately with a message about deployment already in progress.
+awaiting: user response
 
 ## Tests
 
