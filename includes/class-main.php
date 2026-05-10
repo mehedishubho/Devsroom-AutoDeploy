@@ -9,6 +9,7 @@
 namespace Devsroom_AutoDeploy;
 
 use Devsroom_AutoDeploy\Admin\Admin;
+use Devsroom_AutoDeploy\Admin\Repository_Manager;
 use Devsroom_AutoDeploy\Core\Deployment_Manager;
 use Devsroom_AutoDeploy\Core\Polling_Scheduler;
 use Devsroom_AutoDeploy\Database\Schema;
@@ -162,6 +163,15 @@ class Main
         $scheduler = Polling_Scheduler::get_instance();
         add_action('init', array($scheduler, 'schedule'));
         add_action('plugins_loaded', array($this, 'maybe_upgrade_database'));
+
+        // Async deployment handler — fires on WP-Cron after wp_schedule_single_event.
+        $repository_manager = new Repository_Manager();
+        add_action(
+            'devsroom_autodeploy_async_deploy',
+            array($repository_manager, 'handle_async_deployment'),
+            10,
+            2
+        );
     }
 
     /**

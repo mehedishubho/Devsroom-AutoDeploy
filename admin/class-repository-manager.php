@@ -342,6 +342,11 @@ class Repository_Manager
     /**
      * Trigger manual deployment.
      *
+     * Schedules an async deployment via wp_schedule_single_event and redirects
+     * immediately. The actual deployment runs on the next WP-Cron tick, so the
+     * lock persists across the request boundary and the lock indicator is
+     * visible in the repository table.
+     *
      * @param bool $activate_after Whether to activate the plugin after deployment.
      * @return void
      */
@@ -361,32 +366,43 @@ class Repository_Manager
             exit;
         }
 
-        $deployment_manager = Deployment_Manager::get_instance();
-        $result = $deployment_manager->deploy($repository_id, 'manual', get_current_user_id(), true);
+        // Schedule async deployment — fires on next WP-Cron tick.
+        wp_schedule_single_event(
+            time(),
+            'devsroom_autodeploy_async_deploy',
+            array($repository_id, $activate_after)
+        );
 
-        if ($result['success']) {
-            if ($activate_after) {
-                $activation_result = $this->activate_plugin_by_slug($repository['plugin_slug']);
-
-                if ($activation_result['success']) {
-                    wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&deployed_activated=true'));
-                } else {
-                    wp_redirect(
-                        admin_url(
-                            'admin.php?page=devsroom-autodeploy-repositories&error=activation_failed&activation_message=' .
-                                rawurlencode($activation_result['message'])
-                        )
-                    );
-                }
-                exit;
-            }
-
-            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&deployed=true'));
+        if ($activate_after) {
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&deploy_queued=activating'));
         } else {
-            $safe_message = sanitize_text_field($result['message']);
-            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&error=' . urlencode($safe_message)));
+            wp_redirect(admin_url('admin.php?page=devsroom-autodeploy-repositories&deploy_queued=true'));
         }
         exit;
+    }
+
+    /**
+     * Handle async deployment (WP-Cron callback).
+     *
+     * Runs the actual deployment in a WP-Cron context so the lock persists
+     * after the admin redirect. Optionally activates the plugin once
+     * deployment succeeds.
+     *
+     * @param int  $repository_id  Repository ID.
+     * @param bool $activate_after Whether to activate the plugin after deployment.
+     * @return void
+     */
+    public function handle_async_deployment(int $repository_id, bool $activate_after = false): void
+    {
+        $deployment_manager = Deployment_Manager::get_instance();
+        $result = $deployment_manager->deploy($repository_id, 'manual', 0, true);
+
+        if ($result['success'] && $activate_after) {
+            $repository = $this->get_repository($repository_id);
+            if ($repository) {
+                $this->activate_plugin_by_slug($repository['plugin_slug']);
+            }
+        }
     }
 
     /**

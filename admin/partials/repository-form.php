@@ -73,6 +73,14 @@ $status_map = array(
 
         echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($error_message) . '</p></div>';
     }
+
+    if (isset($_GET['deploy_queued'])) {
+        if ('activating' === sanitize_key(wp_unslash($_GET['deploy_queued']))) {
+            echo '<div class="notice notice-info is-dismissible"><p>' . esc_html__('Deployment queued. The plugin will be deployed and activated shortly.', 'devsroom-autodeploy') . '</p></div>';
+        } else {
+            echo '<div class="notice notice-info is-dismissible"><p>' . esc_html__('Deployment queued. It will start shortly.', 'devsroom-autodeploy') . '</p></div>';
+        }
+    }
     ?>
 
     <div class="devsroom-section devsroom-panel">
