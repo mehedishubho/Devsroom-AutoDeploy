@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: resolved
 phase: 01-safety-foundation
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md]
 started: 2026-05-10T14:57:01Z
@@ -72,7 +72,7 @@ blocked: 0
 ## Gaps
 
 - truth: "Lock indicator visible in repository table during active deployment"
-  status: failed
+  status: resolved
   reason: "User reported: I didnt see anything"
   severity: major
   test: 1
@@ -87,7 +87,7 @@ blocked: 0
   debug_session: ".planning/debug/lock-indicator-not-visible.md"
 
 - truth: "Unlock button appears in Actions column when repository is locked"
-  status: failed
+  status: resolved
   reason: "User reported: I didnt see locked button so no unlock button also"
   severity: major
   test: 2
@@ -102,7 +102,7 @@ blocked: 0
   debug_session: ".planning/debug/lock-indicator-not-visible.md"
 
 - truth: "Deployment with PHP syntax errors auto-rolls back to previous version"
-  status: failed
+  status: resolved
   reason: "User reported: no"
   severity: major
   test: 7
