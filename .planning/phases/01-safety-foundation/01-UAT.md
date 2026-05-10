@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-safety-foundation
 source: [01-01-SUMMARY.md, 01-02-SUMMARY.md, 01-03-SUMMARY.md]
 started: 2026-05-10T14:57:01Z
-updated: 2026-05-10T15:05:25Z
+updated: 2026-05-10T15:43:59Z
 ---
 
 ## Current Test
@@ -76,27 +76,41 @@ blocked: 0
   reason: "User reported: I didnt see anything"
   severity: major
   test: 1
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "deploy() runs synchronously — lock is acquired and released within the same HTTP request before the page renders. $repo['locked_at'] is always NULL at template render time."
+  artifacts:
+    - path: "admin/class-repository-manager.php"
+      issue: "trigger_deployment() calls deploy() synchronously then redirects — page never renders while lock held"
+    - path: "core/class-deployment-manager.php"
+      issue: "deploy() acquires lock at line 180, releases in finally block at line 565-567 — lock lifecycle is entirely within one request"
+  missing:
+    - "Make deployments asynchronous (wp_schedule_single_event or Action Scheduler) so lock persists across request boundary"
+  debug_session: ".planning/debug/lock-indicator-not-visible.md"
 
 - truth: "Unlock button appears in Actions column when repository is locked"
   status: failed
   reason: "User reported: I didnt see locked button so no unlock button also"
   severity: major
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Same as Test 1 — deploy() is synchronous, lock released before page renders, so locked_at is always NULL and unlock button conditional never triggers"
+  artifacts:
+    - path: "admin/class-repository-manager.php"
+      issue: "Same synchronous deploy() root cause"
+    - path: "admin/partials/repository-form.php"
+      issue: "Template conditional (!empty($repo['locked_at'])) is correct but data is always NULL at render time"
+  missing:
+    - "Same fix as Test 1 — async deployment"
+  debug_session: ".planning/debug/lock-indicator-not-visible.md"
 
 - truth: "Deployment with PHP syntax errors auto-rolls back to previous version"
   status: failed
   reason: "User reported: no"
   severity: major
   test: 7
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "verify_deployment() only checks the main plugin file ({slug}.php) for PHP syntax errors. Syntax errors in secondary files (core/class-*.php, includes/*.php) pass verification silently — deployment marked success, no rollback triggered."
+  artifacts:
+    - path: "core/class-deployment-manager.php"
+      issue: "verify_deployment() at line 1380 only checks one file via token_get_all(). Subdirectories never scanned."
+  missing:
+    - "Modify verify_deployment() to recursively scan ALL PHP files using RecursiveIteratorIterator"
+    - "In Windows rollback fallback, add cleanup_dir($plugin_path) before copy_directory() for clean restore"
+  debug_session: ".planning/debug/rollback-not-working.md"
